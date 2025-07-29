@@ -1,3 +1,5 @@
+VisualAudio.Api/appsettings.Development.json
+
 # Ignore wwwroot/albums (default root for db/files)
 VisualAudio.Api/wwwroot/albums/*
 
