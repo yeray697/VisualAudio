@@ -1,0 +1,42 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "VisualAudio API",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/backend/VisualAudio.Api/bin/Debug/net9.0/VisualAudio.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/backend/VisualAudio.Api",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/src/backend/VisualAudio.Api/Views"
+      }
+    },
+    {
+      "name": "Debug Next.js",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "/home/jarai/.nvm/versions/node/v24.4.0/bin/node",
+      "program": "${workspaceFolder}/src/frontend/node_modules/next/dist/bin/next",
+      "runtimeArgs": ["--inspect"],
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/src/frontend",
+      "serverReadyAction": {
+        "action": "openExternally",
+        "uriFormat": "%s",
+        "pattern": "- Local:.+(https?://.+)",
+        // "action": "debugWithChrome",
+        "killOnServerStop": true,
+      }
+    }
+  ]
+}

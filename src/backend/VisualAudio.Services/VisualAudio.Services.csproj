@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>VisualAudio.Services</RootNamespace> 
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SoundFingerprinting" Version="12.2.0" />
+    <PackageReference Include="SoundFingerprinting.Emy" Version="12.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VisualAudio.Data\VisualAudio.Data.csproj" />
+  </ItemGroup>
+</Project>

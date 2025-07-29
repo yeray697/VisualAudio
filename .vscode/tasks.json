@@ -1,0 +1,42 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/backend/VisualAudio.sln"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run API",
+      "type": "shell",
+      "command": "dotnet watch run --project src/backend/VisualAudio.Api",
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Run Next.js",
+      "type": "shell",
+      "command": "bash -i -c 'npm run dev'",
+      "options": {
+        "cwd": "src/frontend",
+      },
+      "group": "build",
+      "isBackground": true
+    },
+    {
+      "label": "Run All",
+      "dependsOn": ["Run API", "Run Next.js"],
+      "dependsOrder": "parallel"
+    }
+  ]
+}
