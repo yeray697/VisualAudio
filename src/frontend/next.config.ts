@@ -1,4 +1,3 @@
-import type { NextConfig } from "next";
 import withPWAInit from "next-pwa";
 
 const withPWA = withPWAInit({
@@ -7,16 +6,16 @@ const withPWA = withPWAInit({
   skipWaiting: true,
 });
 
-const nextConfig: NextConfig = withPWA({
+const nextConfig = withPWA({
   reactStrictMode: true,
   images: {
-    domains: ['localhost']
+    domains: ['localhost'],
   },
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:5012/api/:path*", // tu API en desarrollo
+        destination: "http://localhost:5012/api/:path*",
       },
     ];
   },

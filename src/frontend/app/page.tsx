@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import styles from "./page.module.css";
 import { API_BASE_URL } from "../utils/envUtils";
 
@@ -12,7 +12,6 @@ type Match = {
   length: number
 }
 export default function Home() {
-  const MAX_BUFFER_DURATION = 15; // segundos
   const CHUNK_INTERVAL = 500; // ms
   const REQUEST_INTERVAL = 2000; // ms
 
@@ -48,10 +47,6 @@ export default function Home() {
         return trackDuration;
       });
     }, 1000);
-  };
-
-  const stopProgressUpdater = () => {
-    if (progressInterval.current) clearInterval(progressInterval.current);
   };
 
   // --- Añadir canción ---

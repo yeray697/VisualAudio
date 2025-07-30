@@ -1,4 +1,5 @@
 import { Album, MetadataFileType } from "../../types/album";
+import { Message } from "../../types/message";
 import { API_BASE_URL } from "../../utils/envUtils"
 
 export const BASE_URL = `${API_BASE_URL}/api/albums`;
@@ -87,7 +88,7 @@ export async function getAlbumFile(albumId: string, filetype: MetadataFileType, 
   return res.blob();
 }
 
-export async function publishToWS(message: any): Promise<boolean> {
+export async function publishToWS(message: Message): Promise<boolean> {
   const url = `${API_BASE_URL}/api/publish`;
   const res = await fetch(url, {
     method: "POST",
@@ -100,7 +101,7 @@ export async function publishToWS(message: any): Promise<boolean> {
   return true;
 }
 
-export async function getNowPlaying(): Promise<any> {
+export async function getNowPlaying(): Promise<Message> {
   const url = `${API_BASE_URL}/api/nowPlaying`;
   const res = await fetch(url, {
     method: "GET"

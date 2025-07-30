@@ -2,24 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { getNowPlaying } from "../api/albums";
 import { Album, Song } from "../../types/album";
 import { WEBSOCKET_BASE_URL } from "../../utils/envUtils";
-
-type Message = {
-  data: Match,
-  type: string,
-  messageReceived: string
-}
-
-export type Match = {
-  nowPlaying: Song;
-  times: {
-    trackMatchStart: number;
-    queryMatchStart: number;
-    recordedDuration: number;
-    latency: number;
-  };
-  album: Album;
-  confidence: number;
-};
+import { Match, Message } from "../../types/message";
 
 export function useNowPlaying() {
   const lastUpdateRef = useRef<number>(Date.now());

@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { getAlbum, publishToWS } from '../api/albums'
 import { TextField } from '@mui/material';
 import { API_BASE_URL } from '../../utils/envUtils';
+import { Match, Message } from '../../types/message';
 
 export default function PlaygroundPage() {
 
@@ -11,7 +12,7 @@ export default function PlaygroundPage() {
   const REQUEST_INTERVAL = 2000; // ms
   const [message, setMessage] = useState("");
 
-  const sendDetection = async (message: any) => {
+  const sendDetection = async (message: Message) => {
     await publishToWS(message)
   }
   // Estado para detección
@@ -88,7 +89,7 @@ export default function PlaygroundPage() {
           },
           album,
           confidence: data.confidence
-        }
+        } as Match;
       
         await sendDetection({type: "NOW_PLAYING", data: match});
 
