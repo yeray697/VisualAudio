@@ -8,6 +8,7 @@ const withPWA = withPWAInit({
 
 const nextConfig = withPWA({
   reactStrictMode: true,
+  output: 'standalone',
   images: {
     domains: ['localhost'],
   },
