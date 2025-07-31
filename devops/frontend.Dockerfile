@@ -9,7 +9,7 @@ COPY src/frontend/. .
 
 RUN npm run build
 
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 RUN adduser -S service -u 1001 -G node

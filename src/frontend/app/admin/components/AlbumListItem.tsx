@@ -12,6 +12,7 @@ import {
 import { NoPhotography } from "@mui/icons-material";
 import { Album } from "../../../types/album";
 import { getAlbumFileUrl } from "../../../utils/albumFileUtils";
+import { useConfig } from "../../providers/ConfigProvider";
 
 interface Props {
   album: Album;
@@ -19,7 +20,8 @@ interface Props {
 }
 
 export default function AlbumsListItem({ album, onEditClicked }: Props) {
-  const imageUrl = getAlbumFileUrl(album.albumImageFilename, album.id);
+  const config = useConfig();
+  const imageUrl = getAlbumFileUrl(config.apiUrl, album.albumImageFilename, album.id);
   return (
     <Grid size={{xs: 12, sm: 6, md: 4 }} key={album.id}>
       <Card>

@@ -4,6 +4,8 @@ using VisualAudio.Data.Extensions;
 using VisualAudio.Services.Albums;
 using VisualAudio.Services.Fingerprint;
 using VisualAudio.Services.Metadata;
+using VisualAudio.Services.Playing;
+using VisualAudio.Services.Websocket;
 
 namespace VisualAudio.Services.Extensions
 {
@@ -15,10 +17,11 @@ namespace VisualAudio.Services.Extensions
 
             return services
                 .RegisterData()
-                .AddScoped<IFingerprintService, FingerprintService>()
-                .AddScoped<IAlbumsService, AlbumsService>()
+                .AddSingleton<IAlbumsService, AlbumsService>()
                 .AddScoped<IDiscogsService, DiscogsService>()
-                .AddScoped<IMetadataService, MetadataService>();
+                .AddScoped<IMetadataService, MetadataService>()
+                .AddSingleton<IFingerprintService, FingerprintService>()
+                .AddSingleton<IPlayingService, PlayingService>();
         }
     }
 }

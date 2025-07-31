@@ -1,8 +1,7 @@
 "use client";
 
-import { createOrUpdateAlbum, deleteAlbumFile, searchMetadata, uploadAlbumFile } from "../../api/albums";
 import { Album, MetadataFileType, Song } from "../../../types/album";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   DialogTitle,
@@ -18,6 +17,9 @@ import FileSelector from "./FileSelector";
 import AlbumFormSongList from "./AlbumFormSongList";
 import SearchIcon from "@mui/icons-material/Search";
 import { getAlbumFileUrl } from "../../../utils/albumFileUtils";
+import { useConfig } from "../../providers/ConfigProvider";
+import { DeleteFileEntry, UploadFileEntry, useCreateOrUpdateAlbum, useDeleteAlbumFiles, useUploadAlbumFiles } from "../../hooks/useAlbumMutations";
+import { useSearchMetadata } from "../../hooks/useAlbums";
 
 type SongFileAction = {
   songId: string;
@@ -30,48 +32,56 @@ interface Props {
   onClose: () => void;
 }
 export default function AlbumForm({ album, onClose }: Props) {
+  const config = useConfig();
   const [title, setTitle] = useState(album?.title || "");
   const [artist, setArtist] = useState(album?.artist || "");
   const [songs, setSongs] = useState<Song[]>(album?.songs || []);
+  const { fetch: saveAlbumApi } = useCreateOrUpdateAlbum({ id: album?.id || "", title, artist, songs }, false);
+  const { fetch: uploadFilesApi } = useUploadAlbumFiles();
+  const { fetch: deleteFilesApi } = useDeleteAlbumFiles();
+  const { data: metadata, loading: metadataLoading, error: metadataError, fetch: metadataFetch } = useSearchMetadata(album?.artist || "", album?.title || "");
   const [songFileActions, setSongFileActions] = useState<SongFileAction[]>([]);
-  const [albumImage, setAlbumImage] = useState<File | string | null>(album ? getAlbumFileUrl(album.albumImageFilename, album.id) : null);
+  const [albumImage, setAlbumImage] = useState<File | string | null>(album ? getAlbumFileUrl(config.apiUrl, album.albumImageFilename, album.id) : null);
 
   const saveAlbum = async () => {
-    const savedAlbum = await createOrUpdateAlbum({
-      id: album?.id || "",
-      title,
-      artist,
-      songs,
-    });
+    const savedAlbum = await saveAlbumApi();
+
+    const filesToUpload: UploadFileEntry[] = [];
+    const filesToDelete: DeleteFileEntry[] = [];
 
     if (album?.albumImageFilename && !albumImage) {
-      await deleteAlbumFile(savedAlbum.id, "AlbumImage");
+      filesToDelete.push({ filetype: 'AlbumImage' });
     }
     if (albumImage instanceof File || isValidUrl(albumImage)) {
-      await uploadAlbumFile(savedAlbum.id, albumImage!, "AlbumImage");
+      filesToUpload.push({ file: (albumImage as File), filetype: 'AlbumImage' });
     }
+    songFileActions.forEach(action => {
+      if (action.action === 'Add') filesToUpload.push({ file: action.file!, filetype: action.fileType, songId: action.songId });
+      if (action.action === 'Remove') filesToDelete.push({ filetype: action.fileType, songId: action.songId });
+    });
 
-    songFileActions.filter(s => s.action === "Add").forEach(async f => {
-      await uploadAlbumFile(savedAlbum.id, f.file!, f.fileType, f.songId);
-    });
-    songFileActions.filter(s => s.action === "Remove").forEach(async f => {
-      await deleteAlbumFile(savedAlbum.id, f.fileType, f.songId);
-    });
+    if (filesToUpload.length) await uploadFilesApi(savedAlbum.id, filesToUpload);
+    if (filesToDelete.length) await deleteFilesApi(savedAlbum.id, filesToDelete);
 
     onClose();
   };
 
   const getMetadata = async () => {
-    const albumTmp = await searchMetadata(artist, title);
-    if (!albumTmp)
-      return;
-    if (albumTmp.albumImageFilename) {
-      setAlbumImage(albumTmp.albumImageFilename);
-    }
-    setTitle(albumTmp.title);
-    setArtist(albumTmp.artist);
-    setSongs(albumTmp.songs);
+    metadataFetch();
   }
+
+  useEffect(() => {
+    if (!metadata)
+      return;
+    if (metadata.albumImageFilename) {
+      setAlbumImage(metadata.albumImageFilename);
+    }
+    setTitle(metadata.title);
+    setArtist(metadata.artist);
+    setSongs(metadata.songs);
+  }, [metadata]);
+
+
 
   const onSongFileChange = (songId: string, fileType: MetadataFileType, file: File) => {
     const newActions = songFileActions.filter(s => s.songId !== songId)

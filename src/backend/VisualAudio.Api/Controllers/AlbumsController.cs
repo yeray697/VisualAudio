@@ -33,14 +33,14 @@ namespace VisualAudio.Api.Controllers
             if (string.IsNullOrEmpty(album.Id))
                 album.Id = Guid.NewGuid().ToString();
             await albumService.CreateAlbumAsync(album);
-            return Ok(album.Id);
+            return Ok(new { id = album.Id });
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] AlbumDto album)
         {
             await albumService.UpdateAlbumAsync(id, album);
-            return Ok(album.Id);
+            return Ok(new { id = album.Id });
         }
 
         [HttpDelete("{id}")]

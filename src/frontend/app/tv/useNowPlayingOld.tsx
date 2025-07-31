@@ -1,46 +1,24 @@
 import { useState, useEffect, useRef } from "react";
 import { Album, Song } from "../../types/album";
-import { NowPlaying } from "../../types/message";
-import { useGetNowPlaying } from "../hooks/useFingerprint";
+import { Match, Message } from "../../types/message";
+import { useConfig } from "../providers/ConfigProvider";
 
-export function useNowPlaying() {
-  const { data: nowPlaying } = useGetNowPlaying();
+export function useNowPlayingOld() {
 
-  const [match, setMatch] = useState<NowPlaying | null>(null);
-  const matchRef = useRef<NowPlaying | null>(null); // siempre apunta al match actual
+  const config = useConfig();
   const lastUpdateRef = useRef<number>(Date.now());
+  const [match, setMatch] = useState<Match | null>(null);
+  const matchRef = useRef<Match | null>(null); // siempre apunta al match actual
   const [position, setPosition] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
   
   useEffect(() => {
-    if (!nowPlaying)
-      return;
-
-    console.log("[updateTrack] Received WS message:", nowPlaying);
-
-    let elapsed = 0;
-    if (nowPlaying.updatedAt) {
-      const messageReceived = new Date(nowPlaying.updatedAt);
-      elapsed = (Date.now() - messageReceived.getTime()) / 1000;
-    }
-
-    const playbackPos = nowPlaying.trackPosition + elapsed
-
-    console.log("[updateTrack] Calculated playbackPos:", playbackPos);
-
-    const { song, pos } = findCurrentTrack(nowPlaying.album, playbackPos, nowPlaying.nowPlaying.id);
-    console.log("[updateTrack] Updating match to song:", song.name, "pos:", pos, "duration:", song.duration);
-    setMatch({ ...nowPlaying, nowPlaying: song });
-    startProgressUpdater(pos, song.duration, nowPlaying.album);
-  }, [nowPlaying]);
-
-  useEffect(() => {
     matchRef.current = match;
   }, [match]);
   
   const findCurrentTrack = (
-    album: Album,
+  album: Album,
     elapsed: number,
     startingTrackId?: string
   ): { song: Song; pos: number } => {
@@ -68,6 +46,31 @@ export function useNowPlaying() {
     return { song: last, pos: last.duration };
   };
 
+
+  const updateTrack = (message: Message) => {
+    const newMatch: Match = message.data;
+    console.log("[updateTrack] Received WS message:", message);
+
+    let elapsed = 0;
+    if (message.messageReceived) {
+      const messageReceived = new Date(message.messageReceived);
+      elapsed = (Date.now() - messageReceived.getTime()) / 1000;
+    }
+
+    const playbackPos = Math.ceil(
+      newMatch.times.trackMatchStart +
+        (newMatch.times.recordedDuration - newMatch.times.queryMatchStart) +
+        newMatch.times.latency +
+        elapsed
+    );
+
+    console.log("[updateTrack] Calculated playbackPos:", playbackPos);
+
+    const { song, pos } = findCurrentTrack(newMatch.album, playbackPos, newMatch.nowPlaying.id);
+    console.log("[updateTrack] Updating match to song:", song.name, "pos:", pos, "duration:", song.duration);
+    setMatch({ ...newMatch, nowPlaying: song });
+    startProgressUpdater(pos, song.duration, newMatch.album);
+  };
   
   const startProgressUpdater = (startPos: number, trackDuration: number, album: Album) => {
     console.log("[startProgressUpdater] Starting at pos:", startPos, "duration:", trackDuration);
@@ -114,5 +117,24 @@ export function useNowPlaying() {
       if (progressInterval.current) clearInterval(progressInterval.current);
     }
   };
+
+
+  useEffect(() => {
+    console.log("[useEffect] Initializing hook...");
+    getNowPlaying().then(updateTrack);
+
+    const ws = new WebSocket(`ws://${config.apiHost}:${config.apiPort}/ws`);
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      console.log("[WebSocket] Message received:", msg);
+      if (msg.type === "NOW_PLAYING") updateTrack(msg);
+    };
+
+    return () => {
+      console.log("[useEffect] Cleaning up...");
+      ws.close();
+      if (progressInterval.current) clearInterval(progressInterval.current);
+    };
+  }, []);
   return { nowPlaying: match, position, duration };
 }

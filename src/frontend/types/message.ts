@@ -17,3 +17,12 @@ export type Match = {
   album: Album;
   confidence: number;
 };
+
+
+export type NowPlaying = {
+  updatedAt: Date;
+  nowPlaying: Song;
+  album: Album;
+  confidence: number;
+  trackPosition: number;
+};

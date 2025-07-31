@@ -1,19 +1,32 @@
 "use client"
 
-import { useState, useRef } from 'react'
-import { getAlbum, publishToWS } from '../api/albums'
+import { useState, useRef, useEffect } from 'react'
 import { TextField } from '@mui/material';
-import { API_BASE_URL } from '../../utils/envUtils';
 import { Match, Message } from '../../types/message';
+import { useConfig } from '../providers/ConfigProvider';
+import { usePublishToWS } from '../hooks/useNowPlayingData';
+import { useSendAudioChunk as useDetectFingerprint, useUploadFingerprint as useStoreFingerprint } from '../hooks/useFingerprint';
+import { useAlbum } from '../hooks/useAlbums';
 
 export default function PlaygroundPage() {
 
+
+  const [albumId, setAlbumId] = useState<string | undefined>();
+  const [songId, setSongId] = useState<string | undefined>();
+  const {fetch: publishMessage } = usePublishToWS()
+  const config = useConfig();
   const CHUNK_INTERVAL = 500; // ms
   const REQUEST_INTERVAL = 2000; // ms
   const [message, setMessage] = useState("");
 
+  const { fetch: storeFingerprint } = useStoreFingerprint();
+  const { data: fingerprintResult, fetch: detectFingerprint } = useDetectFingerprint()
+  const { data: album } = useAlbum(albumId)
+
   const sendDetection = async (message: Message) => {
-    await publishToWS(message)
+     publishMessage({
+      body: message
+     })
   }
   // Estado para detección
   const [listening, setListening] = useState(false);
@@ -54,50 +67,63 @@ export default function PlaygroundPage() {
     setListening(false);
   };
 
+  useEffect(() => {
+    if (!fingerprintResult)
+      return;
+
+    if (fingerprintResult.confidence > 0.7) {
+      stopListening();
+    }
+  }, [fingerprintResult])
+
   const sendChunk = async () => {
+
+    detectFingerprint()
     const blob = new Blob(audioChunks.current, { type: "audio/webm" });
     const formData = new FormData();
     formData.append("file", blob, "recording.webm");
-    const start = performance.now();
-    const res = await fetch(`${API_BASE_URL}/api/fingerprint/detect?duration=${audioChunks.current.length * CHUNK_INTERVAL}`, {
-      method: "POST",
-      body: formData,
-    });
-    const latency = (performance.now() - start) / 1000; // en segundos
+    await detectFingerprint({ body: formData });
+    // const start = performance.now();
+    // const res = await fetch(`${config.apiUrl}/api/fingerprint/detect?duration=${audioChunks.current.length * CHUNK_INTERVAL}`, {
+    //   method: "POST",
+    //   body: formData,
+    // });
+    // const latency = (performance.now() - start) / 1000; // en segundos
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.track) {
-        const track = data.match.audio.track;
+    // if (res.ok) {
+    //   const data = await res.json();
+    //   if (data && data.track) {
+    //     const track = data.match.audio.track;
 
-        const trackMatchStart = data.match.audio.coverage.trackMatchStartsAt;
-        const queryMatchStart = data.match.audio.coverage.queryMatchStartsAt; 
-        const recordedDuration = data.match.audio.coverage.queryLength;
-        const albumId = track.metaFields["albumId"];
-        const songId = track.metaFields["songId"];
-        const album = await getAlbum(albumId);
+    //     const trackMatchStart = data.match.audio.coverage.trackMatchStartsAt;
+    //     const queryMatchStart = data.match.audio.coverage.queryMatchStartsAt; 
+    //     const recordedDuration = data.match.audio.coverage.queryLength;
+    //     const albumId = track.metaFields["albumId"];
+    //     const songId = track.metaFields["songId"];
+    //     setAlbumId(albumId);
+    //     setSongId(songId);
 
-        const song = album.songs.find(s => s.id === songId);
+    //     const song = album.songs.find(s => s.id === songId);
 
-        const match = {
-          nowPlaying: song,
-          times: {
-            trackMatchStart,
-            queryMatchStart,
-            recordedDuration,
-            latency
-          },
-          album,
-          confidence: data.confidence
-        } as Match;
+    //     const match = {
+    //       nowPlaying: song,
+    //       times: {
+    //         trackMatchStart,
+    //         queryMatchStart,
+    //         recordedDuration,
+    //         latency
+    //       },
+    //       album,
+    //       confidence: data.confidence
+    //     } as Match;
       
-        await sendDetection({type: "NOW_PLAYING", data: match});
+    //     await sendDetection({type: "NOW_PLAYING", data: match});
 
-        if (data.confidence > 0.7) {
-          stopListening();
-        }
-      }
-    }
+    //     if (data.confidence > 0.7) {
+    //       stopListening();
+    //     }
+    //   }
+    // }
   };
 
   const sendMessage = async () => {

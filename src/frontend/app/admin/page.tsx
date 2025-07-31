@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Album,  } from "../../types/album";
 import AlbumForm from "./components/AlbumForm";
-import { getAlbums } from "../api/albums";
 
 import {
   Typography,
@@ -13,29 +12,12 @@ import {
   Grid,
 } from "@mui/material";
 import AlbumsListItem from "./components/AlbumListItem";
+import { useAlbums } from "../hooks/useAlbums";
 
 export default function AlbumsPage() {
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data : albums, error: albumsError, loading: albumsLoading, fetch: fetchAlbums } = useAlbums();
   const [openForm, setOpenForm] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
-
-  const fetchAlbums = async () => {
-    setLoading(true);
-    try {
-      const data = await getAlbums();
-      setAlbums(data);
-    } catch (error) {
-      console.error("Error fetching albums", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  useEffect(() => {
-    fetchAlbums();
-  }, []);
-
 
   const handleOpenForm = (album?: Album) => {
     setSelectedAlbum(album || null);
@@ -57,11 +39,11 @@ export default function AlbumsPage() {
         Add Album
       </Button>
 
-      {loading ? (
+      {albumsLoading ? (
         <CircularProgress style={{ marginTop: "2rem" }} />
       ) : (
         <Grid container spacing={3} style={{ marginTop: "1rem" }}>
-          {albums.map((album) => (
+          {albums?.map((album) => (
             <AlbumsListItem album={album} key={album.id} onEditClicked={(editAlbum) => handleOpenForm(editAlbum)} />
           ))}
         </Grid>

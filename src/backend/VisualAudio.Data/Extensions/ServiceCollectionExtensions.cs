@@ -10,9 +10,9 @@ namespace VisualAudio.Data.Extensions
         public static IServiceCollection RegisterData(this IServiceCollection services)
         {
             return services
-                .AddScoped<IFileStorageService, FileStorageService>()
-                .AddScoped<IAlbumRepository, AlbumRepository>()
-                .AddScoped<IAlbumMetadataRepository, AlbumMetadataRepository>();
+                .AddSingleton<IFileStorageService, FileStorageService>()
+                .AddSingleton<IAlbumRepository, AlbumRepository>()
+                .AddSingleton<IAlbumMetadataRepository, AlbumMetadataRepository>();
         }
     }
 }

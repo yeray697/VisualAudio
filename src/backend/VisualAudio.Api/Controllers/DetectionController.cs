@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 
 using VisualAudio.Services.Fingerprint;
+using VisualAudio.Services.Playing;
 
 namespace VisualAudio.Api.Controllers
 {
@@ -14,7 +15,7 @@ namespace VisualAudio.Api.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    public class FingerprintController(IFingerprintService _fingerprintService) : ControllerBase
+    public class FingerprintController(IFingerprintService _fingerprintService, IPlayingService _playingService) : ControllerBase
     {
         [HttpPost("store")]
         public async Task<IActionResult> Store([FromForm] TrackUploadDto request)
@@ -26,8 +27,8 @@ namespace VisualAudio.Api.Controllers
             });
         }
 
-        [HttpPost("detect")]
-        public async Task<IActionResult> Detect([FromForm] IFormFile file, [FromQuery] double? duration = null)
+        [HttpPost("detectOld")]
+        public async Task<IActionResult> DetectOld([FromForm] IFormFile file, [FromQuery] double? duration = null)
         {
             return await WrapFileTempActionAsync(file, async (tempPath) =>
             {
@@ -42,7 +43,37 @@ namespace VisualAudio.Api.Controllers
                     match = result?.Match
                 });
             }, duration);
+        }
 
+        [HttpPost("detect")]
+        public async Task<IActionResult> Detect([FromForm] IFormFile file)
+        {
+            var stream = await GetStreamAsync(file);
+            if (stream == null)
+                return BadRequest("No file uploaded.");
+            var nowPlaying = await _playingService.DetectNowPlayingAsync(stream);
+
+            return Ok(nowPlaying);
+        }
+
+        [HttpGet("nowplaying")]
+        public IActionResult NowPlaying()
+        {
+            var nowPlaying = _playingService.GetNowPlaying();
+
+            return Ok(nowPlaying);
+        }
+
+        private static async Task<Stream?> GetStreamAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return null;
+
+            var tempPath = Path.Combine(Path.GetTempPath(), $"VisualAudio_{Path.GetRandomFileName()}" + Path.GetExtension(file.FileName));
+            Stream stream = System.IO.File.Create(tempPath);
+            await file.CopyToAsync(stream);
+
+            return stream;
         }
 
         private async Task<IActionResult> WrapFileTempActionAsync(IFormFile file, Func<string, Task<IActionResult>> func, double? duration = null)

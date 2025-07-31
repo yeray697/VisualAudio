@@ -17,6 +17,7 @@ import FileSelector from "./FileSelector";
 import AudioSelector from "./AudioSelector";
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import { getAlbumFileUrl } from "../../../utils/albumFileUtils";
+import { useConfig } from "../../providers/ConfigProvider";
 
 interface Props {
   albumId: string | undefined;
@@ -29,9 +30,10 @@ interface Props {
   onFileRemove: (songId: string, fileType: MetadataFileType) => void;
 }
 export default function AlbumFormSongItem({ albumId, song, songsLength, moveSong, deleteSong, updateSong, onFileRemove, onFileChange }: Props) {
+  const config = useConfig();
   const [expanded, setExpanded] = useState(false);
-  const [songImage, setSongImage] = useState<File | string | null>(song ? getAlbumFileUrl(song.songImageFilename, albumId!, song.id) : null);
-  const [songAudio, setSongAudio] = useState<File | string | null>(song ? getAlbumFileUrl(song.songFilename, albumId!, song.id) : null);
+  const [songImage, setSongImage] = useState<File | string | null>(song ? getAlbumFileUrl(config.apiUrl, song.songImageFilename, albumId!, song.id) : null);
+  const [songAudio, setSongAudio] = useState<File | string | null>(song ? getAlbumFileUrl(config.apiUrl, song.songFilename, albumId!, song.id) : null);
 
   const handleFileChange = (fileType: MetadataFileType, file: File | null) => {
     if (fileType === "SongImage") {

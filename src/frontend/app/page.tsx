@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import styles from "./page.module.css";
-import { API_BASE_URL } from "../utils/envUtils";
+import { useConfig } from "./providers/ConfigProvider";
 
 type Match = {
   artist: string
@@ -12,6 +12,7 @@ type Match = {
   length: number
 }
 export default function Home() {
+  const config = useConfig();
   const CHUNK_INTERVAL = 500; // ms
   const REQUEST_INTERVAL = 2000; // ms
 
@@ -60,7 +61,7 @@ export default function Home() {
     formData.append("artist", artist);
     formData.append("album", album);
 
-    const res = await fetch(`${API_BASE_URL}/api/fingerprint/store`, {
+    const res = await fetch(`${config.apiUrl}/api/fingerprint/store`, {
       method: "POST",
       body: formData,
     });
@@ -104,7 +105,7 @@ export default function Home() {
     const formData = new FormData();
     formData.append("file", blob, "recording.webm");
     const start = performance.now();
-    const res = await fetch(`${API_BASE_URL}/api/fingerprint/detect?duration=${audioChunks.current.length * CHUNK_INTERVAL}`, {
+    const res = await fetch(`${config.apiUrl}/api/fingerprint/detect?duration=${audioChunks.current.length * CHUNK_INTERVAL}`, {
       method: "POST",
       body: formData,
     });
