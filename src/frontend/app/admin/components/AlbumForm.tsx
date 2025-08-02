@@ -1,8 +1,7 @@
 "use client";
 
-import { Album, MetadataFileType, Song } from "../../../types/album";
-import { useEffect, useState } from "react";
-
+import { Album, AlbumFormDto, mapAlbumToForm, mapSongsForm } from "../../../types/album";
+import { useEffect } from "react";
 import {
   DialogTitle,
   DialogContent,
@@ -20,51 +19,27 @@ import { getAlbumFileUrl } from "../../../utils/albumFileUtils";
 import { useConfig } from "../../providers/ConfigProvider";
 import { DeleteFileEntry, UploadFileEntry, useCreateOrUpdateAlbum, useDeleteAlbumFiles, useUploadAlbumFiles } from "../../hooks/useAlbumMutations";
 import { useSearchMetadata } from "../../hooks/useAlbums";
+import useAlbumAdminStore from "../../../store/adminAlbumForm";
 
-type SongFileAction = {
-  songId: string;
-  fileType: MetadataFileType
-  action: "Remove" | "Add"
-  file?: File
-}
 interface Props {
   album?: Album | null;
   onClose: () => void;
 }
 export default function AlbumForm({ album, onClose }: Props) {
-  const config = useConfig();
-  const [title, setTitle] = useState(album?.title || "");
-  const [artist, setArtist] = useState(album?.artist || "");
-  const [songs, setSongs] = useState<Song[]>(album?.songs || []);
+  const { id, albumImageFile, albumImageFilename, title, artist, songs, setAlbum, resetAlbum } = useAlbumAdminStore()
+
   const { fetch: saveAlbumApi } = useCreateOrUpdateAlbum({ id: album?.id || "", title, artist, songs }, false);
   const { fetch: uploadFilesApi } = useUploadAlbumFiles();
   const { fetch: deleteFilesApi } = useDeleteAlbumFiles();
-  const { data: metadata, loading: metadataLoading, error: metadataError, fetch: metadataFetch } = useSearchMetadata(album?.artist || "", album?.title || "");
-  const [songFileActions, setSongFileActions] = useState<SongFileAction[]>([]);
-  const [albumImage, setAlbumImage] = useState<File | string | null>(album ? getAlbumFileUrl(config.apiUrl, album.albumImageFilename, album.id) : null);
-
-  const saveAlbum = async () => {
-    const savedAlbum = await saveAlbumApi();
-
-    const filesToUpload: UploadFileEntry[] = [];
-    const filesToDelete: DeleteFileEntry[] = [];
-
-    if (album?.albumImageFilename && !albumImage) {
-      filesToDelete.push({ filetype: 'AlbumImage' });
+  const { data: metadata, loading: metadataLoading, error: metadataError, fetch: metadataFetch } = useSearchMetadata(artist || "", title || "");
+  
+  useEffect(() => {
+  if (album) {
+      setAlbum(mapAlbumToForm(album));
+    } else {
+      resetAlbum();
     }
-    if (albumImage instanceof File || isValidUrl(albumImage)) {
-      filesToUpload.push({ file: (albumImage as File), filetype: 'AlbumImage' });
-    }
-    songFileActions.forEach(action => {
-      if (action.action === 'Add') filesToUpload.push({ file: action.file!, filetype: action.fileType, songId: action.songId });
-      if (action.action === 'Remove') filesToDelete.push({ filetype: action.fileType, songId: action.songId });
-    });
-
-    if (filesToUpload.length) await uploadFilesApi(savedAlbum.id, filesToUpload);
-    if (filesToDelete.length) await deleteFilesApi(savedAlbum.id, filesToDelete);
-
-    onClose();
-  };
+  }, [album]);
 
   const getMetadata = async () => {
     metadataFetch();
@@ -74,26 +49,49 @@ export default function AlbumForm({ album, onClose }: Props) {
     if (!metadata)
       return;
     if (metadata.albumImageFilename) {
-      setAlbumImage(metadata.albumImageFilename);
+      setAlbum({ albumImageFile: metadata.albumImageFilename })
     }
-    setTitle(metadata.title);
-    setArtist(metadata.artist);
-    setSongs(metadata.songs);
+    setAlbum({ title: metadata.title, artist: metadata.artist, songs: mapSongsForm(metadata.songs) })
   }, [metadata]);
 
+  const getFilesActions = () => {
+    const uploadFiles : Array<UploadFileEntry> = [];
+    const deleteFiles : Array<DeleteFileEntry> = [];
+
+    if (albumImageFile && (albumImageFile instanceof File || albumImageFile !== albumImageFilename)) {
+      uploadFiles.push({ file: albumImageFile, fileType: "AlbumImage" })
+    } else if (!albumImageFile && albumImageFilename) {
+      deleteFiles.push({ fileType: "AlbumImage" })
+    }
 
 
-  const onSongFileChange = (songId: string, fileType: MetadataFileType, file: File) => {
-    const newActions = songFileActions.filter(s => s.songId !== songId)
-    newActions.push({ songId, action: "Add", fileType, file })
-    setSongFileActions(newActions);
+
+    songs.forEach((song, i) => {
+      if (song.songImageFile instanceof File) {
+        uploadFiles.push({ file: song.songImageFile, fileType: "SongImage", songId: song.id })
+      } else if (!song.songImageFile && song.songImageFilename) {
+        deleteFiles.push({ fileType: "SongImage", songId: song.id })
+      }
+
+
+      if (song.songAudioFile instanceof File) {
+        uploadFiles.push({ file: song.songAudioFile, fileType: "Song", songId: song.id })
+      } else if (!song.songAudioFile && song.songFilename) {
+        deleteFiles.push({ fileType: "Song", songId: song.id })
+      }
+    })
+
+    return { uploadFiles, deleteFiles };
   }
+  const saveAlbum = async () => {
+    const savedAlbum = await saveAlbumApi();
+    
+    const { deleteFiles, uploadFiles } = getFilesActions();
+    if (uploadFiles.length) await uploadFilesApi(savedAlbum.id, uploadFiles);
+    if (deleteFiles.length) await deleteFilesApi(savedAlbum.id, deleteFiles);
 
-  const onSongFileRemove = (songId: string, fileType: MetadataFileType) => {
-    const newActions = songFileActions.filter(s => s.songId !== songId)
-    newActions.push({ songId, action: "Remove", fileType })
-    setSongFileActions(newActions);
-  }
+    onClose();
+  };
 
   return (
     <>
@@ -101,7 +99,11 @@ export default function AlbumForm({ album, onClose }: Props) {
       <DialogContent>
         <Grid container spacing={2} sx={{padding: 2}}>
           <Grid size={{xs: 3 }}>
-            <FileSelector value={albumImage} onChange={(file) => { setAlbumImage(file) }} />
+            <FileSelector
+              value={albumImageFile}
+              albumId={id}
+              onChange={(file) => setAlbum({ albumImageFile: file })} 
+            />
           </Grid>
           <Grid size={{xs: 9 }}>
             <Grid container spacing={2}>
@@ -110,7 +112,7 @@ export default function AlbumForm({ album, onClose }: Props) {
                   label="Artist"
                   fullWidth
                   value={artist}
-                  onChange={(e) => setArtist(e.target.value)}
+                  onChange={(e) => setAlbum( { artist: e.target.value })}
                 />
               </Grid>
               <Grid size={{xs: 12 }}>
@@ -118,7 +120,7 @@ export default function AlbumForm({ album, onClose }: Props) {
                   label="Title"
                   fullWidth
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => setAlbum( { title: e.target.value })}
                 />
               </Grid>
               <IconButton onClick={() => getMetadata()}>
@@ -128,13 +130,7 @@ export default function AlbumForm({ album, onClose }: Props) {
           </Grid>
           <Grid size={{xs: 12 }}>
             <Typography variant="h6">Songs</Typography>
-            <AlbumFormSongList
-              songs={songs}
-              setSongs={setSongs}
-              albumId={album?.id}
-              onSongFileChange={onSongFileChange}
-              onSongFileRemove={onSongFileRemove}
-            />
+            <AlbumFormSongList />
           </Grid>
         </Grid>
       </DialogContent>
@@ -146,15 +142,4 @@ export default function AlbumForm({ album, onClose }: Props) {
       </DialogActions>
     </>
   );
-}
-
-function isValidUrl(str: string | null): boolean {
-  if (!str)
-    return false;
-  try {
-    new URL(str);
-    return true;
-  } catch {
-    return false;
-  }
 }

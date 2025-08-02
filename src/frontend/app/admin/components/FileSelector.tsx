@@ -6,13 +6,30 @@ import styles from "./FileSelector.module.css";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import { useConfig } from "../../providers/ConfigProvider";
+import { getAlbumFileUrl } from "../../../utils/albumFileUtils";
 
 interface Props {
+  albumId: string
+  songId?: string
   value: File | string | null;  // Puede ser un File o un string (URL)
   onChange: (file: File | null) => void;
 }
 
-export default function FileSelector({ value, onChange }: Props) {
+function isValidUrl(str: string | null): boolean {
+  if (!str)
+    return false;
+  try {
+    new URL(str);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+
+export default function FileSelector({ value, albumId, songId, onChange }: Props) {
+  const config = useConfig();
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -22,7 +39,10 @@ export default function FileSelector({ value, onChange }: Props) {
       return;
     }
     if (typeof value === "string") {
-      setPreview(value);
+      if (isValidUrl(value))
+        setPreview(value);
+      else
+        setPreview(getAlbumFileUrl(config.apiUrl, value, albumId, songId ))
       return;
     }
     const url = URL.createObjectURL(value);

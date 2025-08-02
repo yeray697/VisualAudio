@@ -24,7 +24,7 @@ export function useCreateOrUpdateAlbum(initialAlbum: Album, autoFetch = false) {
   });
 }
 
-export type UploadFileEntry = { file: File | string; filetype: MetadataFileType; songId?: string };
+export type UploadFileEntry = { file: File | string; fileType: MetadataFileType; songId?: string };
 export function useUploadAlbumFiles(autoFetch = false) {
   const api = useApi<void>({ endpoint: '', method: 'PUT', autoFetch });
 
@@ -32,7 +32,7 @@ export function useUploadAlbumFiles(autoFetch = false) {
     albumId: string,
     files: Array<UploadFileEntry>
   ) => {
-    for (const { file, filetype, songId } of files) {
+    for (const { file, fileType, songId } of files) {
       const queryParams = [];
       if (songId) queryParams.push(`songId=${encodeURIComponent(songId)}`);
       let body: FormData | null = null;
@@ -43,8 +43,9 @@ export function useUploadAlbumFiles(autoFetch = false) {
         queryParams.push(`url=${encodeURIComponent(file)}`);
       }
       const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+      console.log(`Uploading file ${fileType}. Album ${albumId}. SongId ${songId}`)
       await api.fetch({
-        endpoint: `/api/albums/${albumId}/file/${filetype}${queryString}`,
+        endpoint: `/api/albums/${albumId}/file/${fileType}${queryString}`,
         method: 'PUT',
         body,
       });
@@ -55,7 +56,7 @@ export function useUploadAlbumFiles(autoFetch = false) {
 }
 
 
-export type DeleteFileEntry = { filetype: MetadataFileType; songId?: string };
+export type DeleteFileEntry = { fileType: MetadataFileType; songId?: string };
 export function useDeleteAlbumFiles(autoFetch = false) {
   const api = useApi<void>({ endpoint: '', method: 'DELETE', autoFetch });
 
@@ -63,10 +64,11 @@ export function useDeleteAlbumFiles(autoFetch = false) {
     albumId: string,
     files: Array<DeleteFileEntry>
   ) => {
-    for (const { filetype, songId } of files) {
+    for (const { fileType, songId } of files) {
       const query = songId ? `?songId=${encodeURIComponent(songId)}` : '';
+      console.log(`Deleting file ${fileType}. Album ${albumId}. SongId ${songId}`)
       await api.fetch({
-        endpoint: `/api/albums/${albumId}/file/${filetype}${query}`,
+        endpoint: `/api/albums/${albumId}/file/${fileType}${query}`,
         method: 'DELETE',
       });
     }

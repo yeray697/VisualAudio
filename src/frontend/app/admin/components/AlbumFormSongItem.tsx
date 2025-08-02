@@ -1,6 +1,5 @@
 "use client";
 
-import { MetadataFileType, Song } from "../../../types/album";
 import {
   TextField,
   Grid,
@@ -18,43 +17,24 @@ import AudioSelector from "./AudioSelector";
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import { getAlbumFileUrl } from "../../../utils/albumFileUtils";
 import { useConfig } from "../../providers/ConfigProvider";
+import useAlbumAdminStore from "../../../store/adminAlbumForm";
+import { MetadataFileType } from "../../../types/album";
 
 interface Props {
-  albumId: string | undefined;
-  song: Song;
-  songsLength: number;
-  moveSong: (index: number, direction: "up" | "down") => void;
-  deleteSong: (id: string) => void;
-  updateSong: (id: string, field: keyof Song, value: string | number) => void;
-  onFileChange: (songId: string, fileType: MetadataFileType, file: File) => void;
-  onFileRemove: (songId: string, fileType: MetadataFileType) => void;
+  index: number
 }
-export default function AlbumFormSongItem({ albumId, song, songsLength, moveSong, deleteSong, updateSong, onFileRemove, onFileChange }: Props) {
+export default function AlbumFormSongItem({ index }: Props) {
+  const { id: albumId, updateSong, removeSong, moveSong } = useAlbumAdminStore()
+  const song = useAlbumAdminStore((state) => state.songs[index]);
+  const songsLength = useAlbumAdminStore((state) => state.songs.length);
+
   const config = useConfig();
   const [expanded, setExpanded] = useState(false);
-  const [songImage, setSongImage] = useState<File | string | null>(song ? getAlbumFileUrl(config.apiUrl, song.songImageFilename, albumId!, song.id) : null);
-  const [songAudio, setSongAudio] = useState<File | string | null>(song ? getAlbumFileUrl(config.apiUrl, song.songFilename, albumId!, song.id) : null);
+  
+  // const [songImage, setSongImage] = useState<File | string | null>(song ? getAlbumFileUrl(config.apiUrl, song.songImageFilename, albumId, song.id) : null);
+  // const [songAudio, setSongAudio] = useState<File | string | null>(song ? getAlbumFileUrl(config.apiUrl, song.songFilename, albumId!, song.id) : null);
 
-  const handleFileChange = (fileType: MetadataFileType, file: File | null) => {
-    if (fileType === "SongImage") {
-      setSongImage(file);
-      if (song?.songImageFilename && !file) {
-        onFileRemove(song.id, fileType);
-      }
-      else if (file instanceof File) {
-        onFileChange(song.id, fileType, file);
-      }
-    }
-    else if (fileType === "Song") {
-      setSongAudio(file);
-      if (song?.songFilename && !file) {
-        onFileRemove(song.id, fileType);
-      }
-      else if (file instanceof File) {
-        onFileChange(song.id, fileType, file);
-      }
-    }
-  };
+
 
   return (
 
@@ -67,7 +47,7 @@ export default function AlbumFormSongItem({ albumId, song, songsLength, moveSong
           </Typography>
           <FingerprintIcon
             color={(
-              typeof songAudio === "string") ? // If audio is already stored
+              typeof song.songAudioFile === "string") ? // If audio is already stored
                 song.fingerprintId ? "success" : "error"
               : "disabled"
             }
@@ -83,7 +63,7 @@ export default function AlbumFormSongItem({ albumId, song, songsLength, moveSong
           <IconButton onClick={() => moveSong(song.position - 1, "down")} disabled={song.position === songsLength }>
             <ArrowDropDownIcon />
           </IconButton>
-          <IconButton color="error" onClick={() => deleteSong(song.id)}>
+          <IconButton color="error" onClick={() => removeSong(index)}>
             <DeleteIcon />
           </IconButton>
         </Grid>
@@ -93,7 +73,11 @@ export default function AlbumFormSongItem({ albumId, song, songsLength, moveSong
       <Collapse in={expanded}>
         <Grid container spacing={1} sx={{ mt: 1 }}>
           <Grid size={{xs: 3 }}>
-            <FileSelector value={songImage} onChange={(file) => { handleFileChange("SongImage", file) }} />
+            <FileSelector
+              value={song.songImageFile}
+              albumId={albumId}
+              songId={song.id}
+              onChange={(file) => updateSong(index, { songImageFile: file })} />
           </Grid>
           <Grid size={{xs: 9 }}>
             <Grid container spacing={2}>
@@ -102,7 +86,7 @@ export default function AlbumFormSongItem({ albumId, song, songsLength, moveSong
                   label="Name"
                   fullWidth
                   value={song.name}
-                  onChange={(e) => updateSong(song.id, "name", e.target.value)}
+                  onChange={(e) => updateSong(index, { name: e.target.value })}
                 />
               </Grid>
               <Grid size={{xs: 4 }}>
@@ -111,12 +95,16 @@ export default function AlbumFormSongItem({ albumId, song, songsLength, moveSong
                   type="number"
                   fullWidth
                   value={song.duration}
-                  onChange={(e) => updateSong(song.id, "duration", Number(e.target.value))}
+                  onChange={(e) => updateSong(index, { duration: Number(e.target.value) })}
                 />
               </Grid>
             </Grid>
             <Grid size={{xs: 12 }}>
-              <AudioSelector value={songAudio} onChange={(file) => { handleFileChange("Song", file) }} />
+              <AudioSelector
+                value={song.songAudioFile} 
+                albumId={albumId}
+                songId={song.id}
+                onChange={(file) => updateSong(index, { songAudioFile: file })} />
             </Grid>
           </Grid>
         </Grid>

@@ -8,6 +8,8 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { IconButton } from "@mui/material";
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import { useConfig } from "../../providers/ConfigProvider";
+import { getAlbumFileUrl } from "../../../utils/albumFileUtils";
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -23,10 +25,13 @@ const VisuallyHiddenInput = styled('input')({
 
 interface Props {
   value: File | string | null;
+  albumId: string
+  songId?: string
   onChange: (file: File | null) => void;
 }
 
-export default function AudioSelector({ value, onChange }: Props) {
+export default function AudioSelector({ value, albumId, songId, onChange }: Props) {
+  const config = useConfig();
   const [preview, setPreview] = useState<string | null>(null);
   const [isPlaying, setPlaying] = useState(false);
 
@@ -36,7 +41,7 @@ export default function AudioSelector({ value, onChange }: Props) {
       return;
     }
     if (typeof value === "string") {
-      setPreview(value);
+      setPreview(getAlbumFileUrl(config.apiUrl, value, albumId, songId ))
       return;
     }
     const url = URL.createObjectURL(value);
