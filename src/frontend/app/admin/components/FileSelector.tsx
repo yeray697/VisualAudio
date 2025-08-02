@@ -8,10 +8,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { useConfig } from "../../providers/ConfigProvider";
 import { getAlbumFileUrl } from "../../../utils/albumFileUtils";
+import { CardMedia } from "@mui/material";
 
 interface Props {
   albumId: string
   songId?: string
+  readonly?: boolean
   value: File | string | null;  // Puede ser un File o un string (URL)
   onChange: (file: File | null) => void;
 }
@@ -28,7 +30,7 @@ function isValidUrl(str: string | null): boolean {
 }
 
 
-export default function FileSelector({ value, albumId, songId, onChange }: Props) {
+export default function FileSelector({ value, albumId, songId, readonly, onChange }: Props) {
   const config = useConfig();
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +58,8 @@ export default function FileSelector({ value, albumId, songId, onChange }: Props
   };
 
   const openFileSelector = () => {
+    if (readonly)
+      return;
     fileInputRef.current?.click();
   };
 
@@ -64,7 +68,7 @@ export default function FileSelector({ value, albumId, songId, onChange }: Props
   };
 
   return (
-    <div className={styles.albumCoverInput}>
+    <div className={styles.albumCoverInput} style={{cursor: !readonly ? 'pointer' : undefined }}>
       <input
         type="file"
         accept="image/*"
@@ -75,25 +79,27 @@ export default function FileSelector({ value, albumId, songId, onChange }: Props
 
       {preview ? (
         <div className={styles.imageWrapper}>
-          <img
-            src={preview}
-            alt="Album cover"
+          <CardMedia
+            component="img"
+            image={preview}
           />
           {/* Overlay en hover */}
-          <div className={styles.overlay}>
-            <button
-              type="button"
-              onClick={openFileSelector}
-            >
-              <EditIcon />
-            </button>
-            <button
-              type="button"
-              onClick={handleRemove}
-            >
-              <DeleteIcon />
-            </button>
-          </div>
+          { !readonly && 
+            <div className={styles.overlay}>
+              <button
+                type="button"
+                onClick={openFileSelector}
+              >
+                <EditIcon />
+              </button>
+              <button
+                type="button"
+                onClick={handleRemove}
+              >
+                <DeleteIcon />
+              </button>
+            </div>
+          }
         </div>
       ) : (
         // Si NO hay imagen
@@ -101,7 +107,7 @@ export default function FileSelector({ value, albumId, songId, onChange }: Props
           className={styles.placeholder}
           onClick={openFileSelector}
         >
-          <AddIcon/>
+          { !readonly && <AddIcon /> }
         </div>
       )}
     </div>

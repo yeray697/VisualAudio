@@ -1,6 +1,6 @@
 "use client";
 
-import { Album, AlbumFormDto, mapAlbumToForm, mapSongsForm } from "../../../types/album";
+import { Album, mapAlbumToForm, mapSongsForm } from "../../../types/album";
 import { useEffect } from "react";
 import {
   DialogTitle,
@@ -15,8 +15,6 @@ import {
 import FileSelector from "./FileSelector";
 import AlbumFormSongList from "./AlbumFormSongList";
 import SearchIcon from "@mui/icons-material/Search";
-import { getAlbumFileUrl } from "../../../utils/albumFileUtils";
-import { useConfig } from "../../providers/ConfigProvider";
 import { DeleteFileEntry, UploadFileEntry, useCreateOrUpdateAlbum, useDeleteAlbumFiles, useUploadAlbumFiles } from "../../hooks/useAlbumMutations";
 import { useSearchMetadata } from "../../hooks/useAlbums";
 import useAlbumAdminStore from "../../../store/adminAlbumForm";
@@ -31,7 +29,7 @@ export default function AlbumForm({ album, onClose }: Props) {
   const { fetch: saveAlbumApi } = useCreateOrUpdateAlbum({ id: album?.id || "", title, artist, songs }, false);
   const { fetch: uploadFilesApi } = useUploadAlbumFiles();
   const { fetch: deleteFilesApi } = useDeleteAlbumFiles();
-  const { data: metadata, loading: metadataLoading, error: metadataError, fetch: metadataFetch } = useSearchMetadata(artist || "", title || "");
+  const { data: metadata, fetch: metadataFetch } = useSearchMetadata(artist || "", title || "");
   
   useEffect(() => {
   if (album) {
@@ -66,7 +64,7 @@ export default function AlbumForm({ album, onClose }: Props) {
 
 
 
-    songs.forEach((song, i) => {
+    songs.forEach((song) => {
       if (song.songImageFile instanceof File) {
         uploadFiles.push({ file: song.songImageFile, fileType: "SongImage", songId: song.id })
       } else if (!song.songImageFile && song.songImageFilename) {
@@ -102,6 +100,7 @@ export default function AlbumForm({ album, onClose }: Props) {
             <FileSelector
               value={albumImageFile}
               albumId={id}
+              readonly
               onChange={(file) => setAlbum({ albumImageFile: file })} 
             />
           </Grid>

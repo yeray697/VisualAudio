@@ -1,6 +1,7 @@
 export interface Song {
   id: string;
   name: string;
+  artist?: string;
   position: number;
   duration: number;
   fingerprintId?: string;

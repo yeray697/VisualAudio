@@ -5,7 +5,6 @@
   border-radius: 8px;
   background: #f0f0f0;
   overflow: hidden;
-  cursor: pointer;
 }
 
 .albumCoverInput .placeholder {
@@ -20,7 +19,7 @@
   transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
-.albumCoverInput .placeholder:hover {
+.albumCoverInput .placeholder:has(svg):hover {
   background: #555;
   color: #fff;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
