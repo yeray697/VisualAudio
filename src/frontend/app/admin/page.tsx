@@ -15,7 +15,7 @@ import AlbumsListItem from "./components/AlbumListItem";
 import { useAlbums } from "../hooks/useAlbums";
 
 export default function AlbumsPage() {
-  const { data : albums, error: albumsError, loading: albumsLoading, fetch: fetchAlbums } = useAlbums();
+  const { data : albums, loading: albumsLoading, fetch: fetchAlbums } = useAlbums();
   const [openForm, setOpenForm] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
 
@@ -49,7 +49,7 @@ export default function AlbumsPage() {
         </Grid>
       )}
 
-      <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth>
+      <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth >
         <AlbumForm album={selectedAlbum} onClose={handleCloseForm} />
       </Dialog>
     </div>

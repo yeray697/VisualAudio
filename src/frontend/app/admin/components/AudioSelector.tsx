@@ -3,34 +3,26 @@
 import { useEffect, useState } from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
 import AudioVisualizerClient from "./AudioVisualizerClient";
-import { Grid, styled } from "@mui/material";
+import { Box, Grid, Typography } from "@mui/material";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { IconButton } from "@mui/material";
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useConfig } from "../../providers/ConfigProvider";
 import { getAlbumFileUrl } from "../../../utils/albumFileUtils";
-
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
-  height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  whiteSpace: 'nowrap',
-  width: 1,
-});
+import { VisuallyHiddenInput } from "./ImageSelector";
 
 interface Props {
   value: File | string | null;
   albumId: string
   songId?: string
+  height: number
+  padding: number
+  border: number
   onChange: (file: File | null) => void;
 }
 
-export default function AudioSelector({ value, albumId, songId, onChange }: Props) {
+export default function AudioSelector({ value, height, padding, border, albumId, songId, onChange }: Props) {
   const config = useConfig();
   const [preview, setPreview] = useState<string | null>(null);
   const [isPlaying, setPlaying] = useState(false);
@@ -51,36 +43,43 @@ export default function AudioSelector({ value, albumId, songId, onChange }: Prop
   
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
+    const files = e.target.files;
+    if (!files || !files.length)
+      return;
+    const file = files?.[0] || null;
     onChange(file);
   };
 
-  const handleRemove = () => {
-    onChange(null);
-  };
-
   return (
-    <>
-    {
-      !preview ? (
-        <IconButton
-          component="label"
-          role={undefined}
-          tabIndex={-1}
-        >
-          <CloudUploadIcon />
-          <VisuallyHiddenInput
-            type="file"
-            accept="audio/*"
-            onChange={handleFileChange}
-            multiple
-          />
-        </IconButton>
+    <Grid container sx={{padding: padding}} border={`${border}px solid #333`} borderRadius="25px" justifyContent="center">
+      { !preview ? (
+        <Box display="flex">
+          <IconButton
+            style={{height: height }}
+            component="label"
+            role={undefined}
+            tabIndex={-1}
+          >
+            <CloudUploadIcon />
+            <VisuallyHiddenInput
+              type="file"
+              accept="audio/*"
+              onChange={handleFileChange}
+              multiple
+            />
+          </IconButton>
+          <Typography alignContent="center">
+            Upload file to generate fingerprint
+          </Typography>
+        </Box>
       )
       : (
-        <Grid container sx={{padding: 1}} border="1px solid #333" borderRadius="25px">
+        <>
           <Grid size={{xs: 1 }}>
-            <IconButton onClick={() => setPlaying(!isPlaying)}>
+            <IconButton onClick={(e) => {
+              e.stopPropagation()
+              setPlaying(!isPlaying)
+            }}>
               {
                 isPlaying ? <PauseIcon/> : <PlayArrowIcon />
               }
@@ -90,7 +89,7 @@ export default function AudioSelector({ value, albumId, songId, onChange }: Prop
             <AudioVisualizerClient
               audioUrl={preview}
               play={isPlaying}
-              height={40}
+              height={height}
             />
           </Grid>
           <Grid size={{xs: 1 }}>
@@ -109,13 +108,15 @@ export default function AudioSelector({ value, albumId, songId, onChange }: Prop
             </IconButton>
           </Grid>
           <Grid size={{xs: 1 }}>
-            <IconButton color="error" onClick={handleRemove}>
+            <IconButton color="error" onClick={(e) => {
+              e.stopPropagation()
+              onChange(null)
+            }}>
               <DeleteIcon />
             </IconButton>
           </Grid>
-        </Grid>
-      )
-    }
-  </>
-  );
+        </>
+      )}
+    </Grid>
+  )
 }

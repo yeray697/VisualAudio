@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import AlbumFormSongItem from "./AlbumFormSongItem";
 import useAlbumAdminStore from "../../../store/adminAlbumForm";
@@ -13,20 +13,25 @@ export default function AlbumFormSongList() {
   };
 
   return (
-    <div>
-      {songs.map((song, index) => (
-        <AlbumFormSongItem
-          key={song.id || index}
-          index={index}
-        />
-      ))}
-      <Button
-        startIcon={<AddIcon />}
-        onClick={handleAddSong}
-        sx={{ mt: 1 }}
-      >
-        Add Song
-      </Button>
-    </div>
+    <>
+      <Typography variant="h6">Songs</Typography>
+      <Box>
+        {songs.map((song, index) => (
+          <AlbumFormSongItem
+            key={song.id || index}
+            index={index}
+          />
+        ))}
+        <Box display='flex' justifyContent='flex-end'>
+          <Button
+            startIcon={<AddIcon />}
+            onClick={handleAddSong}
+            sx={{ mt: 1 }}
+          >
+            Add Song
+          </Button>
+        </Box>
+      </Box>
+    </>
   );
 }

@@ -9,10 +9,8 @@ import {
   Button,
   TextField,
   Grid,
-  Typography,
-  IconButton,
 } from "@mui/material";
-import FileSelector from "./FileSelector";
+import FileSelector from "./ImageSelector";
 import AlbumFormSongList from "./AlbumFormSongList";
 import SearchIcon from "@mui/icons-material/Search";
 import { DeleteFileEntry, UploadFileEntry, useCreateOrUpdateAlbum, useDeleteAlbumFiles, useUploadAlbumFiles } from "../../hooks/useAlbumMutations";
@@ -94,13 +92,12 @@ export default function AlbumForm({ album, onClose }: Props) {
   return (
     <>
       <DialogTitle>{album ? "Edit Album" : "Create Album"}</DialogTitle>
-      <DialogContent>
+      <DialogContent >
         <Grid container spacing={2} sx={{padding: 2}}>
           <Grid size={{xs: 3 }}>
             <FileSelector
               value={albumImageFile}
               albumId={id}
-              readonly
               onChange={(file) => setAlbum({ albumImageFile: file })} 
             />
           </Grid>
@@ -122,13 +119,19 @@ export default function AlbumForm({ album, onClose }: Props) {
                   onChange={(e) => setAlbum( { title: e.target.value })}
                 />
               </Grid>
-              <IconButton onClick={() => getMetadata()}>
-                <SearchIcon />
-              </IconButton>
+              <Grid size={{xs: 12 }} display='flex' justifyContent='flex-end'>
+
+                <Button
+                  startIcon={<SearchIcon />}
+                  onClick={getMetadata}
+                  sx={{ mt: 1 }}
+                >
+                  Auto fill
+                </Button>
+              </Grid>
             </Grid>
           </Grid>
           <Grid size={{xs: 12 }}>
-            <Typography variant="h6">Songs</Typography>
             <AlbumFormSongList />
           </Grid>
         </Grid>

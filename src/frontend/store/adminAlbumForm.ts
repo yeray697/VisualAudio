@@ -52,10 +52,17 @@ const useAlbumAdminStore = create<AlbumStore>()((set) => ({
       ),
     })),
   removeSong: (index) =>
-    set((state) => ({
+    set((state) => {
+      const filteredSongs = state.songs.filter((_, i) => i !== index);
+      const updatedSongs = filteredSongs.map((song, i) => ({
+        ...song,
+        position: i + 1,
+      }));
+      return ({
       ...state,
-      songs: state.songs.filter((_, i) => i !== index),
-    })),
+      songs: updatedSongs,
+    })
+  }),
   moveSong: (index: number, direction: "up" | "down") =>
     set((state) => {
       const newSongs = [...state.songs];
