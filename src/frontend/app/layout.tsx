@@ -30,6 +30,7 @@ export const metadata: Metadata = {
 };
 
 function createConfig(): Config {
+  console.log('env API_HOST:', process.env.API_HOST);
   const apiHost = process.env.API_HOST || 'localhost';
   const apiProtocol = process.env.API_PROTOCOL || 'http';
   const apiPort = process.env.API_PORT || '5112';
@@ -43,7 +44,7 @@ function createConfig(): Config {
     },
   };
 }
-
+export const dynamic = 'force-dynamic';
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -52,6 +53,7 @@ export default function RootLayout({
   
   const config = createConfig();
 
+  console.log('Config in RootLayout:', config);
   return (
     <html lang="en" className={roboto.variable}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
