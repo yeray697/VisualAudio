@@ -23,10 +23,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-    RUN wget --no-check-certificate https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh && \
-    chmod +x /tmp/dotnet-install.sh && \
-    /tmp/dotnet-install.sh --channel 9.0 --runtime aspnetcore --install-dir /usr/share/dotnet && \
-    ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
+    RUN wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh && \
+    bash /tmp/dotnet-install.sh --version 9.0.0 --runtime aspnetcore --install-dir /usr/share/dotnet && \
     rm /tmp/dotnet-install.sh
 
 
