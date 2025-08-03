@@ -20,10 +20,7 @@ WORKDIR /app
 
 # install ffmpeg7 and runtime .NET dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates wget libxcb1 libbluray2 libelf1 libexpat1 libmp3lame0 libopenmpt0 libopus0 libpciaccess0 \
-    libtheora0 libvorbis0a libvorbisenc2 libvpx7 libwebp7 libwebpmux3 libx11-xcb1 \
-    libxcb-dri3-0 libxcb-present0 libxcb-randr0 libxcb-sync1 \
-    libxshmfence1 libzvbi0 ocl-icd-libopencl1 libssl3 libicu zlib1g \
+    ca-certificates wget
     && rm -rf /var/lib/apt/lists/*
 
 # install jellyfin ffmpeg 7
@@ -34,15 +31,15 @@ RUN wget -O /tmp/jellyfin-ffmpeg7.deb https://repo.jellyfin.org/files/ffmpeg/deb
     rm -rf /var/lib/apt/lists/*
 
 # add jellyfin ffmpeg to path
-RUN ln -sf /opt/jellyfin-ffmpeg7/ffmpeg /usr/local/bin/ffmpeg && \
-    ln -sf /opt/jellyfin-ffmpeg7/ffprobe /usr/local/bin/ffprobe
+RUN ln -sf /usr/lib/jellyfin-ffmpeg/ffmpeg /usr/local/bin/ffmpeg && \
+    ln -sf /usr/lib/jellyfin-ffmpeg/ffprobe /usr/local/bin/ffprobe
 
 # install net9
-RUN wget https://dotnetcli.azureedge.net/dotnet/aspnet/9.0.0/dotnet-runtime-9.0.0-linux-x64.tar.gz -O /tmp/dotnet-runtime.tar.gz && \
-    mkdir -p /usr/share/dotnet && \
-    tar -zxf /tmp/dotnet-runtime.tar.gz -C /usr/share/dotnet && \
+RUN wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh && \
+    chmod +x /tmp/dotnet-install.sh && \
+    /tmp/dotnet-install.sh --channel 9.0 --runtime aspnetcore --install-dir /usr/share/dotnet && \
     ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
-    rm /tmp/dotnet-runtime.tar.gz
+    rm /tmp/dotnet-install.sh
 
 COPY --from=build /app/publish .
 
