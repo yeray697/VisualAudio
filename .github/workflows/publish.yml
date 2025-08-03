@@ -16,8 +16,11 @@ jobs:
     steps:
       - name: Convert repository name to lowercase
         id: lowercase
-        run: echo "image_name_lower=${GITHUB_REPOSITORY_OWNER,,}/${GITHUB_REPOSITORY##*/,,}" >> $GITHUB_ENV && \
-             echo "image_name_lower=${GITHUB_REPOSITORY_OWNER,,}/${GITHUB_REPOSITORY##*/,,}" >> $GITHUB_OUTPUT
+        shell: bash
+        run: |
+          echo "image_name_lower=${GITHUB_REPOSITORY_OWNER,,}/${GITHUB_REPOSITORY##*/,,}" >> $GITHUB_ENV
+          echo "image_name_lower=${GITHUB_REPOSITORY_OWNER,,}/${GITHUB_REPOSITORY##*/,,}" >> $GITHUB_OUTPUT
+
 
   build-frontend:
     needs: set-vars
