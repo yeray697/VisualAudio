@@ -2,6 +2,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 
+# install toolchain for native aot
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends clang zlib1g-dev libc6-dev && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY src/backend/VisualAudio.sln ./
 COPY src/backend/VisualAudio.Api/VisualAudio.Api.csproj VisualAudio.Api/
 COPY src/backend/VisualAudio.Contracts/VisualAudio.Contracts.csproj VisualAudio.Contracts/
