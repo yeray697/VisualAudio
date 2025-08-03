@@ -18,31 +18,29 @@ RUN dotnet publish VisualAudio.Api/VisualAudio.Api.csproj -c Release -o /app/pub
 # Runtime stage
 FROM debian:bookworm-slim AS runtime
 
-# install net9 dependencies
+# install net9
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    libc6 \
-    libgcc-s1 \
-    libgssapi-krb5-2 \
-    libicu70 \
-    libssl3 \
-    libstdc++6 \
-    libunwind8 \
-    zlib1g \
+    wget \
+    && rm -rf /var/lib/apt/lists/* \
+    wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh && \
+    chmod +x /tmp/dotnet-install.sh && \
+    /tmp/dotnet-install.sh --channel 9.0 --runtime aspnetcore --install-dir /usr/share/dotnet && \
+    ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
+    rm /tmp/dotnet-install.sh
+
+
+# dependencies to make ffmpeg 7
+RUN apt-get update && apt-get install -y \
+    autoconf automake build-essential cmake git libtool pkg-config yasm \
+    libx264-dev libx265-dev libvpx-dev libfdk-aac-dev libopus-dev libmp3lame-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# instala net9
-RUN curl -SL --output dotnet-runtime-9.0.deb https://aka.ms/dotnet/thank-you/runtime-9.0-linux-x64-bundle-installer \
-    && dpkg -i dotnet-runtime-9.0.deb \
-    && rm dotnet-runtime-9.0.deb
+# make ffmpeg 7
+RUN git clone --depth 1 --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git /ffmpeg && \
+    cd /ffmpeg && ./configure --enable-gpl --enable-nonfree --enable-libx264 --enable-libx265 --enable-libvpx --enable-libfdk-aac --enable-libopus --enable-libmp3lame && \
+    make -j$(nproc) && make install && \
+    rm -rf /ffmpeg
 
-# make ffmpeg 7 from repo
-RUN apt-get update && apt-get install -y \
-    build-essential yasm pkg-config libx264-dev libx265-dev libvpx-dev libfdk-aac-dev libopus-dev libmp3lame-dev \
-    && git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git /ffmpeg \
-    && cd /ffmpeg && ./configure --prefix=/usr/local --enable-gpl --enable-libx264 --enable-libx265 --enable-libvpx --enable-libfdk-aac --enable-libmp3lame --enable-libopus \
-    && make -j$(nproc) && make install && rm -rf /ffmpeg
 WORKDIR /app
 
 COPY --from=build /app/publish .
