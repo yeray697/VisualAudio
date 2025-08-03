@@ -1,0 +1,8 @@
+**/node_modules
+**/.next
+**/.git
+**/.github
+**/tests
+**/*.log
+docker-compose*.yml
+.devcontainer
