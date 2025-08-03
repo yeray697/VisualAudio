@@ -16,13 +16,14 @@ RUN dotnet publish VisualAudio.Api/VisualAudio.Api.csproj -c Release -o /app/pub
 
 
 # Runtime stage
-FROM debian:bookworm-slim AS runtime
+FROM ubuntu:24.04 AS runtime
 
 # install net9
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
-    && rm -rf /var/lib/apt/lists/* \
-    wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh && \
+    && rm -rf /var/lib/apt/lists/*
+
+    RUN wget --no-check-certificate https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh && \
     chmod +x /tmp/dotnet-install.sh && \
     /tmp/dotnet-install.sh --channel 9.0 --runtime aspnetcore --install-dir /usr/share/dotnet && \
     ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
