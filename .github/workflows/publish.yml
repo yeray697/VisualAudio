@@ -18,9 +18,8 @@ jobs:
         id: lowercase
         shell: bash
         run: |
-          echo "image_name_lower=${GITHUB_REPOSITORY_OWNER,,}/${GITHUB_REPOSITORY##*/,,}" >> $GITHUB_ENV
-          echo "image_name_lower=${GITHUB_REPOSITORY_OWNER,,}/${GITHUB_REPOSITORY##*/,,}" >> $GITHUB_OUTPUT
-
+          echo "image_name_lower=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+          echo "image_name_lower=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
 
   build-frontend:
     needs: set-vars
