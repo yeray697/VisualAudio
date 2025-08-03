@@ -7,25 +7,32 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # --- Job inicial: calcula el nombre lowercase del repo ---
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      image_name_lower: ${{ steps.lowercase.outputs.image_name_lower }}
+    steps:
+      - name: Convert repository to lowercase
+        id: lowercase
+        run: echo "image_name_lower=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
   # --- frontend amd64 build ---
   frontend-amd64:
     runs-on: ubuntu-latest
+    needs: prepare
     steps:
       - uses: actions/checkout@v4
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
       - name: Log in to registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Cache docker layers
         uses: actions/cache@v3
         with:
@@ -33,7 +40,6 @@ jobs:
           key: buildx-frontend-amd64-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             buildx-frontend-amd64-${{ runner.os }}-
-
       - name: Build amd64 frontend image
         run: |
           docker buildx build \
@@ -41,25 +47,23 @@ jobs:
             --cache-to=type=local,dest=/tmp/.buildx-cache-frontend-amd64 \
             --cache-from=type=local,src=/tmp/.buildx-cache-frontend-amd64 \
             -f ./devops/frontend.Dockerfile \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:amd64-${{ github.sha }} \
-            --load .
+            -t ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/frontend:amd64-${{ github.sha }} \
+            --push .
 
   # --- frontend arm64 build ---
   frontend-arm64:
     runs-on: ubuntu-latest
+    needs: prepare
     steps:
       - uses: actions/checkout@v4
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
       - name: Log in to registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Cache docker layers
         uses: actions/cache@v3
         with:
@@ -67,7 +71,6 @@ jobs:
           key: buildx-frontend-arm64-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             buildx-frontend-arm64-${{ runner.os }}-
-
       - name: Build arm64 frontend image
         run: |
           docker buildx build \
@@ -75,25 +78,23 @@ jobs:
             --cache-to=type=local,dest=/tmp/.buildx-cache-frontend-arm64 \
             --cache-from=type=local,src=/tmp/.buildx-cache-frontend-arm64 \
             -f ./devops/frontend.Dockerfile \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:arm64-${{ github.sha }} \
-            --load .
+            -t ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/frontend:arm64-${{ github.sha }} \
+            --push .
 
   # --- backend amd64 build ---
   backend-amd64:
     runs-on: ubuntu-latest
+    needs: prepare
     steps:
       - uses: actions/checkout@v4
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
       - name: Log in to registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Cache docker layers
         uses: actions/cache@v3
         with:
@@ -101,7 +102,6 @@ jobs:
           key: buildx-backend-amd64-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             buildx-backend-amd64-${{ runner.os }}-
-
       - name: Build amd64 backend image
         run: |
           docker buildx build \
@@ -109,25 +109,23 @@ jobs:
             --cache-to=type=local,dest=/tmp/.buildx-cache-backend-amd64 \
             --cache-from=type=local,src=/tmp/.buildx-cache-backend-amd64 \
             -f ./devops/backend.Dockerfile \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:amd64-${{ github.sha }} \
-            --load .
+            -t ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/backend:amd64-${{ github.sha }} \
+            --push .
 
   # --- backend arm64 build ---
   backend-arm64:
     runs-on: ubuntu-latest
+    needs: prepare
     steps:
       - uses: actions/checkout@v4
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
       - name: Log in to registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Cache docker layers
         uses: actions/cache@v3
         with:
@@ -135,7 +133,6 @@ jobs:
           key: buildx-backend-arm64-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             buildx-backend-arm64-${{ runner.os }}-
-
       - name: Build arm64 backend image
         run: |
           docker buildx build \
@@ -143,8 +140,8 @@ jobs:
             --cache-to=type=local,dest=/tmp/.buildx-cache-backend-arm64 \
             --cache-from=type=local,src=/tmp/.buildx-cache-backend-arm64 \
             -f ./devops/backend.Dockerfile \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:arm64-${{ github.sha }} \
-            --load .
+            -t ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/backend:arm64-${{ github.sha }} \
+            --push .
 
   # --- Publish multiarch manifest frontend ---
   publish-manifest-frontend:
@@ -157,13 +154,12 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Create and push frontend manifest
         run: |
-          docker manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:amd64-${{ github.sha }} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:arm64-${{ github.sha }}
-          docker manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+          docker manifest create ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/frontend:${{ github.sha }} \
+            ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/frontend:amd64-${{ github.sha }} \
+            ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/frontend:arm64-${{ github.sha }}
+          docker manifest push ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/frontend:${{ github.sha }}
 
   # --- Publish multiarch manifest backend ---
   publish-manifest-backend:
@@ -176,10 +172,9 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Create and push backend manifest
         run: |
-          docker manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:amd64-${{ github.sha }} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:arm64-${{ github.sha }}
-          docker manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
+          docker manifest create ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/backend:${{ github.sha }} \
+            ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/backend:amd64-${{ github.sha }} \
+            ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/backend:arm64-${{ github.sha }}
+          docker manifest push ${{ env.REGISTRY }}/${{ needs.prepare.outputs.image_name_lower }}/backend:${{ github.sha }}
