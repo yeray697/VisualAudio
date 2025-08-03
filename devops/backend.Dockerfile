@@ -22,8 +22,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates wget libxcb1 libbluray2 libelf1 libexpat1 libmp3lame0 libopenmpt0 libopus0 libpciaccess0 \
     libtheora0 libvorbis0a libvorbisenc2 libvpx7 libwebp7 libwebpmux3 libx11-xcb1 \
-    libx264-164 libx265-199 libxcb-dri3-0 libxcb-present0 libxcb-randr0 libxcb-sync1 \
-    libxshmfence1 libzvbi0 ocl-icd-libopencl1 libssl3 libicu70 zlib1g \
+    libxcb-dri3-0 libxcb-present0 libxcb-randr0 libxcb-sync1 \
+    libxshmfence1 libzvbi0 ocl-icd-libopencl1 libssl3 libicu zlib1g \
     && rm -rf /var/lib/apt/lists/*
 
 # install jellyfin ffmpeg 7
