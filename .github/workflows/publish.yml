@@ -7,12 +7,20 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  REPO_OWNER: ${{ github.repository_owner }}
-  REPO_NAME: ${{ github.repository }}
-  REPO_NAME_LOWER: ${{ github.repository_owner }}/$(echo "${{ github.repository##*/ }}" | tr '[:upper:]' '[:lower:]')
 
 jobs:
+  set-vars:
+    runs-on: ubuntu-latest
+    outputs:
+      image_name_lower: ${{ steps.lowercase.outputs.image_name_lower }}
+    steps:
+      - name: Convert repository name to lowercase
+        id: lowercase
+        run: echo "image_name_lower=${GITHUB_REPOSITORY_OWNER,,}/${GITHUB_REPOSITORY##*/,,}" >> $GITHUB_ENV && \
+             echo "image_name_lower=${GITHUB_REPOSITORY_OWNER,,}/${GITHUB_REPOSITORY##*/,,}" >> $GITHUB_OUTPUT
+
   build-frontend:
+    needs: set-vars
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -37,7 +45,7 @@ jobs:
         id: meta-frontend
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPO_NAME_LOWER }}/frontend
+          images: ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/frontend
 
       - name: Build and push frontend image (amd64)
         uses: docker/build-push-action@v5
@@ -66,11 +74,12 @@ jobs:
       - name: Create and push multi-arch manifest (frontend)
         run: |
           docker buildx imagetools create \
-            -t ${{ env.REGISTRY }}/${{ env.REPO_NAME_LOWER }}/frontend:latest \
-            ${{ env.REGISTRY }}/${{ env.REPO_NAME_LOWER }}/frontend:amd64 \
-            ${{ env.REGISTRY }}/${{ env.REPO_NAME_LOWER }}/frontend:arm64
+            -t ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/frontend:latest \
+            ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/frontend:amd64 \
+            ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/frontend:arm64
 
   build-backend:
+    needs: set-vars
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -95,7 +104,7 @@ jobs:
         id: meta-backend
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPO_NAME_LOWER }}/backend
+          images: ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/backend
 
       - name: Build and push backend image (amd64)
         uses: docker/build-push-action@v5
@@ -124,6 +133,6 @@ jobs:
       - name: Create and push multi-arch manifest (backend)
         run: |
           docker buildx imagetools create \
-            -t ${{ env.REGISTRY }}/${{ env.REPO_NAME_LOWER }}/backend:latest \
-            ${{ env.REGISTRY }}/${{ env.REPO_NAME_LOWER }}/backend:amd64 \
-            ${{ env.REGISTRY }}/${{ env.REPO_NAME_LOWER }}/backend:arm64
+            -t ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/backend:latest \
+            ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/backend:amd64 \
+            ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/backend:arm64
