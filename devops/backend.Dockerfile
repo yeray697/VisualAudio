@@ -15,15 +15,35 @@ COPY src/backend/. .
 RUN dotnet publish VisualAudio.Api/VisualAudio.Api.csproj -c Release -o /app/publish
 
 
-FROM linuxserver/ffmpeg:7.1.1 AS ffmpeg
+# Runtime stage
+FROM debian:bookworm-slim AS runtime
 
+# install net9 dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    libc6 \
+    libgcc-s1 \
+    libgssapi-krb5-2 \
+    libicu70 \
+    libssl3 \
+    libstdc++6 \
+    libunwind8 \
+    zlib1g \
+    && rm -rf /var/lib/apt/lists/*
 
-# Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim AS runtime
+# instala net9
+RUN curl -SL --output dotnet-runtime-9.0.deb https://aka.ms/dotnet/thank-you/runtime-9.0-linux-x64-bundle-installer \
+    && dpkg -i dotnet-runtime-9.0.deb \
+    && rm dotnet-runtime-9.0.deb
+
+# make ffmpeg 7 from repo
+RUN apt-get update && apt-get install -y \
+    build-essential yasm pkg-config libx264-dev libx265-dev libvpx-dev libfdk-aac-dev libopus-dev libmp3lame-dev \
+    && git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git /ffmpeg \
+    && cd /ffmpeg && ./configure --prefix=/usr/local --enable-gpl --enable-libx264 --enable-libx265 --enable-libvpx --enable-libfdk-aac --enable-libmp3lame --enable-libopus \
+    && make -j$(nproc) && make install && rm -rf /ffmpeg
 WORKDIR /app
-
-COPY --from=ffmpeg /usr/local/bin/ffmpeg /usr/bin/ffmpeg
-COPY --from=ffmpeg /usr/local/bin/ffprobe /usr/bin/ffprobe
 
 COPY --from=build /app/publish .
 
