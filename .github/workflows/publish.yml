@@ -1,65 +1,185 @@
-name: Build and publish Docker images
+name: Build and publish Docker images multiarch parallel
 
 on:
   push:
     branches: ['main']
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push-images:
+  # --- frontend amd64 build ---
+  frontend-amd64:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Log in to the Container registry
+      
+      - name: Log in to registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # --- Build FRONTEND ---
-      - name: Extract metadata for frontend
-        id: meta-frontend
-        uses: docker/metadata-action@v5
+      - name: Cache docker layers
+        uses: actions/cache@v3
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
+          path: /tmp/.buildx-cache-frontend-amd64
+          key: buildx-frontend-amd64-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            buildx-frontend-amd64-${{ runner.os }}-
 
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./devops/frontend.Dockerfile
-          push: true
-          tags: ${{ steps.meta-frontend.outputs.tags }}
-          labels: ${{ steps.meta-frontend.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
+      - name: Build amd64 frontend image
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --cache-to=type=local,dest=/tmp/.buildx-cache-frontend-amd64 \
+            --cache-from=type=local,src=/tmp/.buildx-cache-frontend-amd64 \
+            -f ./devops/frontend.Dockerfile \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:amd64-${{ github.sha }} \
+            --load .
 
-      # --- Build BACKEND ---
-      - name: Extract metadata for backend
-        id: meta-backend
-        uses: docker/metadata-action@v5
+  # --- frontend arm64 build ---
+  frontend-arm64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to registry
+        uses: docker/login-action@v3
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push backend image
-        uses: docker/build-push-action@v5
+      - name: Cache docker layers
+        uses: actions/cache@v3
         with:
-          context: .
-          file: ./devops/backend.Dockerfile
-          push: true
-          tags: ${{ steps.meta-backend.outputs.tags }}
-          labels: ${{ steps.meta-backend.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
+          path: /tmp/.buildx-cache-frontend-arm64
+          key: buildx-frontend-arm64-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            buildx-frontend-arm64-${{ runner.os }}-
+
+      - name: Build arm64 frontend image
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            --cache-to=type=local,dest=/tmp/.buildx-cache-frontend-arm64 \
+            --cache-from=type=local,src=/tmp/.buildx-cache-frontend-arm64 \
+            -f ./devops/frontend.Dockerfile \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:arm64-${{ github.sha }} \
+            --load .
+
+  # --- backend amd64 build ---
+  backend-amd64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache-backend-amd64
+          key: buildx-backend-amd64-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            buildx-backend-amd64-${{ runner.os }}-
+
+      - name: Build amd64 backend image
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --cache-to=type=local,dest=/tmp/.buildx-cache-backend-amd64 \
+            --cache-from=type=local,src=/tmp/.buildx-cache-backend-amd64 \
+            -f ./devops/backend.Dockerfile \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:amd64-${{ github.sha }} \
+            --load .
+
+  # --- backend arm64 build ---
+  backend-arm64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache-backend-arm64
+          key: buildx-backend-arm64-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            buildx-backend-arm64-${{ runner.os }}-
+
+      - name: Build arm64 backend image
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            --cache-to=type=local,dest=/tmp/.buildx-cache-backend-arm64 \
+            --cache-from=type=local,src=/tmp/.buildx-cache-backend-arm64 \
+            -f ./devops/backend.Dockerfile \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:arm64-${{ github.sha }} \
+            --load .
+
+  # --- Publish multiarch manifest frontend ---
+  publish-manifest-frontend:
+    runs-on: ubuntu-latest
+    needs: [frontend-amd64, frontend-arm64]
+    steps:
+      - name: Log in to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push frontend manifest
+        run: |
+          docker manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:amd64-${{ github.sha }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:arm64-${{ github.sha }}
+          docker manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+
+  # --- Publish multiarch manifest backend ---
+  publish-manifest-backend:
+    runs-on: ubuntu-latest
+    needs: [backend-amd64, backend-arm64]
+    steps:
+      - name: Log in to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push backend manifest
+        run: |
+          docker manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:amd64-${{ github.sha }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:arm64-${{ github.sha }}
+          docker manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}

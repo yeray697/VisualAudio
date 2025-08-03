@@ -30,9 +30,9 @@ export const metadata: Metadata = {
 };
 
 function createConfig(): Config {
-  const apiHost = process.env.NEXT_PUBLIC_API_HOST || 'localhost';
-  const apiProtocol = process.env.NEXT_PUBLIC_API_PROTOCOL || 'http';
-  const apiPort = process.env.NEXT_PUBLIC_API_PORT || '5112';
+  const apiHost = process.env.API_HOST || 'localhost';
+  const apiProtocol = process.env.API_PROTOCOL || 'http';
+  const apiPort = process.env.API_PORT || '5112';
 
   return {
     apiHost,
