@@ -1,10 +1,12 @@
-﻿using System.Text.Json;
+﻿using Microsoft.Extensions.Configuration;
 
+using SoundFingerprinting;
 using SoundFingerprinting.Audio;
 using SoundFingerprinting.Builder;
 using SoundFingerprinting.Configuration;
 using SoundFingerprinting.Data;
 using SoundFingerprinting.Emy;
+using SoundFingerprinting.InMemory;
 using SoundFingerprinting.Query;
 using SoundFingerprinting.Strides;
 
@@ -13,9 +15,25 @@ namespace VisualAudio.Services.Fingerprint
     public class FingerprintService : IFingerprintService
     {
         private const int maxSeconds = 15;
-        private static readonly EmyModelService modelService = EmyModelService.NewInstance("192.168.3.8", 3399);
-        private static readonly IAudioService audioService = new FFmpegAudioService();
+        private readonly IModelService modelService;
+        private readonly IAudioService audioService;
 
+        public FingerprintService(IConfiguration config)
+        {
+            var protocol = config["Fingerprint:Emy:Protocol"] ?? throw new ArgumentException("Missing Fingerprint__Emmy__Protocol parameter on appsettings");
+            var host = config["Fingerprint:Emy:Host"] ?? throw new ArgumentException("Missing Fingerprint__Emmy__Host parameter on appsettings");
+            var port = config["Fingerprint:Emy:Port"] ?? throw new ArgumentException("Missing Fingerprint__Emmy__Port parameter on appsettings");
+            if (!int.TryParse(port, out var portParsed) || portParsed <= 0)
+                throw new ArgumentException("Fingerprint__Emmy__Port must be a postivie int");
+
+            bool useInMemoryStorage = bool.TryParse(config["Fingerprint:InMemoryStorage"], out var result) && result;
+            if (useInMemoryStorage)
+                modelService = new InMemoryModelService();
+            else
+                modelService = EmyModelService.NewInstance($"{protocol}://{host}", portParsed);
+            audioService = new FFmpegAudioService();
+
+        }
 
         public async Task<string?> ConvertToWavAsync(Stream content)
         {
@@ -98,8 +116,8 @@ namespace VisualAudio.Services.Fingerprint
                 return null;
 
             var bestMatch = queryResult.BestMatch!;
-            if (bestMatch != null)
-                modelService.RegisterMatches([bestMatch.ConvertToAvQueryMatch()], false);
+            if (bestMatch != null && modelService is EmyModelService emyModelService)
+                emyModelService.RegisterMatches([bestMatch.ConvertToAvQueryMatch()], false);
 
             var track = modelService.ReadTrackById(bestMatch.TrackId);
 
