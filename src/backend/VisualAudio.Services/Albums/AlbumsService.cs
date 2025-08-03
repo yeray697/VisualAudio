@@ -50,6 +50,7 @@ namespace VisualAudio.Services.Albums
                 newSong.UpdatedAt = s.UpdatedAt;
                 //SongImageFilename = s.SongImageFilename
                 //SongFilename = s.SongFilename
+                //SongLyricsFilename = s.SongLyricsFilename;
 
                 return newSong;
             }).ToList();
@@ -83,6 +84,11 @@ namespace VisualAudio.Services.Albums
                     filename = song.SongImageFilename;
                     song.SongImageFilename = null;
                 }
+                else if (fileType == MetadataFileType.SongLyrics)
+                {
+                    filename = song.SongLyricsFilename;
+                    song.SongLyricsFilename = null;
+                }
             }
             if (!string.IsNullOrEmpty(filename))
             {
@@ -107,7 +113,9 @@ namespace VisualAudio.Services.Albums
                 var song = album.Songs.First(s => s.Id == songId);
                 if (fileType == MetadataFileType.SongImage)
                     song.SongImageFilename = filename;
-                if (fileType == MetadataFileType.Song)
+                else if (fileType == MetadataFileType.SongLyrics)
+                    song.SongLyricsFilename = filename;
+                else if (fileType == MetadataFileType.Song)
                 {
                     song.SongFilename = filename;
                     var convertedTmpPath = await fingerprintService.ConvertToWavAsync(content);
@@ -131,8 +139,10 @@ namespace VisualAudio.Services.Albums
                 var song = album.Songs.First(s => s.Id == songId);
                 if (fileType == MetadataFileType.SongImage)
                     filename = song.SongImageFilename;
-                if (fileType == MetadataFileType.Song)
+                else if (fileType == MetadataFileType.Song)
                     filename = song.SongFilename;
+                else if (fileType == MetadataFileType.SongLyrics)
+                    filename = song.SongLyricsFilename;
             }
             if (filename == null)
                 return null;
@@ -160,6 +170,7 @@ namespace VisualAudio.Services.Albums
                     UpdatedAt = s.UpdatedAt,
                     SongImageFilename = s.SongImageFilename,
                     SongFilename = s.SongFilename,
+                    SongLyricsFilename = s.SongLyricsFilename,
                     FingerprintId = s.FingerprintId
                 })
             };
@@ -182,6 +193,7 @@ namespace VisualAudio.Services.Albums
                     Name = s.Name,
                     SongImageFilename = s.SongImageFilename,
                     SongFilename = s.SongFilename,
+                    SongLyricsFilename = s.SongLyricsFilename,
                     FingerprintId = s.FingerprintId,
                     Position = s.Position,
                     UpdatedAt = s.UpdatedAt,
@@ -202,6 +214,7 @@ namespace VisualAudio.Services.Albums
                 MetadataFileType.AlbumImage => "album-cover",
                 MetadataFileType.Song => "song",
                 MetadataFileType.SongImage => "song-cover",
+                MetadataFileType.SongLyrics => "song-lyrics",
                 _ => throw new NotImplementedException(),
             };
             return $"{filename}{fileExtension}";

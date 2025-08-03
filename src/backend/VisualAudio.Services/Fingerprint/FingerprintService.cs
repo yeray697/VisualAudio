@@ -21,10 +21,8 @@ namespace VisualAudio.Services.Fingerprint
 
         public FingerprintService(ILogger<FingerprintService> logger, IConfiguration config)
         {
-            var protocol = config["Fingerprint:Emy:Protocol"] ?? throw new ArgumentException("Missing Fingerprint__Emy__Protocol parameter on appsettings");
             var host = config["Fingerprint:Emy:Host"] ?? throw new ArgumentException("Missing Fingerprint__Emy__Host parameter on appsettings");
             var port = config["Fingerprint:Emy:Port"] ?? throw new ArgumentException("Missing Fingerprint__Emy__Port parameter on appsettings");
-            logger.LogInformation("Protocol: {Protocol}", protocol);
             logger.LogInformation("Host: {Host}", host);
             logger.LogInformation("Port: {Port}", port);
             if (!int.TryParse(port, out var portParsed) || portParsed <= 0)
@@ -34,7 +32,7 @@ namespace VisualAudio.Services.Fingerprint
             if (useInMemoryStorage)
                 modelService = new InMemoryModelService();
             else
-                modelService = EmyModelService.NewInstance($"{protocol}://{host}", portParsed);
+                modelService = EmyModelService.NewInstance(host, portParsed);
             audioService = new FFmpegAudioService();
 
         }

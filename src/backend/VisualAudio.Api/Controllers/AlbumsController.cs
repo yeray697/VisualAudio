@@ -66,6 +66,7 @@ namespace VisualAudio.Api.Controllers
             }
             Stream stream;
             string extension;
+
             if (file != null)
             {
                 stream = file.OpenReadStream();

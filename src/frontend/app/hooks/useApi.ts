@@ -5,6 +5,7 @@ import { useConfig } from '../providers/ConfigProvider';
 import { useEffect, useState } from 'react';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type ResponseType = 'json' | 'blob' | 'text';
 
 interface UseApiOptions<T> {
   endpoint: string;
@@ -13,6 +14,7 @@ interface UseApiOptions<T> {
   params?: Record<string, string | number>;
   mapFn?: (data: any) => T;
   autoFetch?: boolean;
+  responseType?: ResponseType;
 }
 
 export function useApi<T = any>({
@@ -22,6 +24,7 @@ export function useApi<T = any>({
   params,
   mapFn,
   autoFetch = true,
+  responseType = 'json',
 }: UseApiOptions<T>) {
   const config = useConfig();
   const [data, setData] = useState<T | null>(null);
@@ -42,10 +45,10 @@ export function useApi<T = any>({
     setError(null);
     try {
       const bodyFormatted = overrides?.body !== undefined
-          ? (overrides.body instanceof FormData ? overrides.body : JSON.stringify(overrides.body))
-          : body
-            ? JSON.stringify(body)
-            : undefined;
+        ? (overrides.body instanceof FormData ? overrides.body : JSON.stringify(overrides.body))
+        : body
+          ? JSON.stringify(body)
+          : undefined;
       const isFormData = bodyFormatted instanceof FormData;
       const res = await fetch(buildUrl(overrides?.params, overrides?.endpoint), {
         method: overrides?.method || method,
@@ -53,9 +56,16 @@ export function useApi<T = any>({
         body: bodyFormatted,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json().catch(() => null);
-      setData(mapFn ? mapFn(json) : json);
-      return mapFn ? mapFn(json) : json;
+
+      const type = overrides?.responseType || responseType;
+      let result: any;
+      if (type === 'blob') result = await res.blob();
+      else if (type === 'text') result = await res.text();
+      else result = await res.json().catch(() => null);
+
+      const mapped = mapFn ? mapFn(result) : result;
+      setData(mapped);
+      return mapped;
     } catch (err) {
       setError(err as Error);
       throw err;
@@ -67,7 +77,7 @@ export function useApi<T = any>({
   useEffect(() => {
     if (autoFetch) fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpoint, JSON.stringify(params), JSON.stringify(body)]);
+  }, [autoFetch, endpoint, JSON.stringify(params), JSON.stringify(body)]);
 
   return { data, loading, error, fetch: fetchData };
 }

@@ -1,3 +1,5 @@
+import { formatDurationToTime } from "../utils/timeUtils";
+
 export interface Song {
   id: string;
   name: string;
@@ -6,6 +8,7 @@ export interface Song {
   duration: number;
   fingerprintId?: string;
   songImageFilename?: string;
+  songLyricsFilename?: string;
   songFilename?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -21,13 +24,20 @@ export interface Album {
   updatedAt?: string;
 }
 
-export type MetadataFileType = "AlbumImage" | "SongImage" | "Song";
+export type MetadataFileType = "AlbumImage" | "SongImage" | "Song" | "SongLyrics";
 
+export type FileContent = {
+  content: string,
+  modified: boolean
+}
 export type FileLike = File | string | null; 
 
 export interface SongFormDto extends Song {
   songImageFile: FileLike; // replaces songImageFilename
   songAudioFile: FileLike; // replaces songFilename
+  songLyricsFileContent: FileContent | null; // replaces songLyricsFilename
+  durationMinutes: number;
+  durationSeconds: number;
 }
 
 export interface AlbumFormDto extends Album {
@@ -43,10 +53,15 @@ export function mapAlbumToForm(album: Album): AlbumFormDto {
   };
 }
 export function mapSongsForm(songs: Song[]): SongFormDto[] {
-  return songs.map(song => ({
+  return songs.map(song => {
+    const { minutes, seconds } = formatDurationToTime(song.duration);
+    return {
       ...song,
+      durationMinutes: minutes,
+      durationSeconds: seconds,
       songImageFile: song.songImageFilename ?? null,
-      songAudioFile: song.songFilename ?? null
-    }))
+      songAudioFile: song.songFilename ?? null,
+      songLyricsFileContent: null
+    }})
     
 }

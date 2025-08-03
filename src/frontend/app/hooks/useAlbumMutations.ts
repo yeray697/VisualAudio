@@ -24,7 +24,7 @@ export function useCreateOrUpdateAlbum(initialAlbum: Album, autoFetch = false) {
   });
 }
 
-export type UploadFileEntry = { file: File | string; fileType: MetadataFileType; songId?: string };
+export type UploadFileEntry = { file: Blob | string; fileType: MetadataFileType; songId?: string };
 export function useUploadAlbumFiles(autoFetch = false) {
   const api = useApi<void>({ endpoint: '', method: 'PUT', autoFetch });
 
@@ -36,7 +36,7 @@ export function useUploadAlbumFiles(autoFetch = false) {
       const queryParams = [];
       if (songId) queryParams.push(`songId=${encodeURIComponent(songId)}`);
       let body: FormData | null = null;
-      if (file instanceof File) {
+      if (file instanceof Blob) {
         body = new FormData();
         body.append('file', file);
       } else {
@@ -86,5 +86,6 @@ export function useGetAlbumFile(albumId: string, filetype: MetadataFileType, son
     method: 'GET',
     autoFetch,
     mapFn: (res) => res as Blob,
+    responseType: "blob"
   });
 }

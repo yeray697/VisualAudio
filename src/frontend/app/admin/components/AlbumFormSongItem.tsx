@@ -6,6 +6,8 @@ import {
   Paper,
   Typography,
   Box,
+  Button,
+  Grid,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -18,6 +20,10 @@ import useAlbumAdminStore from "../../../store/adminAlbumForm";
 import { motion } from "motion/react";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useShallow } from "zustand/shallow";
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import dayjs, { Dayjs } from 'dayjs';
+import { formatDurationToTimeString, formatTimeToDuration } from "../../../utils/timeUtils";
+import { LyricsEditorDialog } from "./LyricsEditor";
 
 interface Props {
   index: number
@@ -28,11 +34,13 @@ export default function AlbumFormSongItem({ index }: Props) {
   const songsLength = useAlbumAdminStore(useShallow((state) => state.songs.length));
 
   const [expanded, setExpanded] = useState(false);
+  const [openLyricsDialog, setOpenLyricsDialog] = useState(false);
   
   const size = expanded ? 128 : 64;
   const audioSelectorPadding = 1;
   const audioSelectorHeight = 40;
   const audioSelectorBorder = 1;
+
   // height + 1*8px margin + 2*8px padding + 2*1px border
   const audioSelectorExpandedHeight = audioSelectorHeight + (3 * (audioSelectorPadding * 8)) + (2 + audioSelectorBorder);
   return (
@@ -63,7 +71,7 @@ export default function AlbumFormSongItem({ index }: Props) {
                 albumId={albumId}
                 songId={song.id}
                 onChange={(file) =>
-                  updateSong(index, { songImageFile: file })
+                  updateSong(song.id, { songImageFile: file })
                 }
                 readonly={!expanded}
               />
@@ -98,7 +106,7 @@ export default function AlbumFormSongItem({ index }: Props) {
                       fullWidth
                       value={song.name}
                       onClick={(e) => e.stopPropagation()}
-                      onChange={(e) => updateSong(index, { name: e.target.value })}
+                      onChange={(e) => updateSong(song.id, { name: e.target.value })}
                     />
                   ) : (
                     <Typography variant="body1">{song.name || <i>(Sin nombre)</i>}</Typography>
@@ -111,7 +119,7 @@ export default function AlbumFormSongItem({ index }: Props) {
                       fullWidth
                       value={song.artist}
                       onClick={(e) => e.stopPropagation()}
-                      onChange={(e) => updateSong(index, { artist: e.target.value })}
+                      onChange={(e) => updateSong(song.id, { artist: e.target.value })}
                     />
                   ) : (
                     <Typography variant="body2">{song.artist || <i>(Sin artista)</i>}</Typography>
@@ -126,7 +134,7 @@ export default function AlbumFormSongItem({ index }: Props) {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   style={{
                     display: "flex",
-                    gap: 8,
+                    gap: expanded ? 8 : 34,
                     alignItems: !expanded ? "center" : "flex-end",
                     flexDirection: expanded ? "column-reverse" : "row",
                     width: "100%",
@@ -135,16 +143,26 @@ export default function AlbumFormSongItem({ index }: Props) {
                   {/* Duration */}
                   <motion.div layoutId={`song-duration-${song.id}`} style={{ width: expanded ? "100%" : "auto" }}>
                     {expanded ? (
-                      <TextField
-                        label="Duration (s)"
-                        type="number"
-                        fullWidth
-                        value={song.duration}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={(e) => updateSong(index, { duration: Number(e.target.value) })}
-                      />
+                      <Box onClick={(e) => e.stopPropagation()}>
+                        <TimePicker
+                          views={['minutes', 'seconds']}
+                          format="mm:ss"
+                          value={dayjs(`${song.durationMinutes}:${song.durationSeconds}`, 'mm:ss')}
+                          onChange={(e) => {
+                            if (!e)
+                              return;
+                            const minutes = e.minute();
+                            const seconds = e.second();
+                            updateSong(song.id, {
+                              duration: formatTimeToDuration(minutes, seconds),
+                              durationMinutes: minutes,
+                              durationSeconds: seconds
+                            })
+                          }}
+                        />
+                      </Box>
                     ) : (
-                      <Typography>{song.duration} s</Typography>
+                      <Typography>{formatDurationToTimeString(song.duration)}</Typography>
                     )}
                   </motion.div>
 
@@ -179,7 +197,7 @@ export default function AlbumFormSongItem({ index }: Props) {
                       color="error"
                       onClick={(e) => {
                         e.stopPropagation();
-                        removeSong(index);
+                        removeSong(song.id);
                       }}
                     >
                       <DeleteIcon />
@@ -196,23 +214,34 @@ export default function AlbumFormSongItem({ index }: Props) {
               style={{ overflow: "hidden" }}
             >
               
-              <Box
+              <Grid
+                container
                 mt={1}
                 style={{
                   overflow: "hidden",
                   transition: "height 0.3s ease"
                 }}
               >
-                <AudioSelector
-                  value={song.songAudioFile}
-                  albumId={albumId}
+                <Grid size={{ xs: 6 }}>
+                  <AudioSelector
+                    value={song.songAudioFile}
+                    albumId={albumId}
+                    songId={song.id}
+                    height={audioSelectorHeight}
+                    border={audioSelectorBorder}
+                    padding={audioSelectorPadding}
+                    onChange={(file) => updateSong(song.id, { songAudioFile: file })}
+                  />
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                  <Button onClick={() => setOpenLyricsDialog(true)}>Lyrics</Button>
+                </Grid>
+                <LyricsEditorDialog 
+                  open={openLyricsDialog}
+                  onClose={() => {setOpenLyricsDialog(false)}}
                   songId={song.id}
-                  height={audioSelectorHeight}
-                  border={audioSelectorBorder}
-                  padding={audioSelectorPadding}
-                  onChange={(file) => updateSong(index, { songAudioFile: file })}
                 />
-              </Box>
+              </Grid>
             </motion.div>
           </Box>
           

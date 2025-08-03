@@ -9,7 +9,17 @@ export default function AlbumFormSongList() {
   const { songs, addSong } = useAlbumAdminStore()
   
   const handleAddSong = () => {
-    addSong({ id: crypto.randomUUID(), name: "", position: songs.length + 1, duration: 0, songAudioFile: null, songImageFile: null  });
+    addSong({
+      id: crypto.randomUUID(),
+      name: "",
+      position: songs.length + 1,
+      duration: 0,
+      songAudioFile: null,
+      songImageFile: null,
+      songLyricsFileContent: null,
+      durationMinutes: 0,
+      durationSeconds: 0
+    });
   };
 
   return (

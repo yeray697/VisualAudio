@@ -7,8 +7,8 @@ type AlbumStoreActions = {
 }
 type AlbumSongActions = {
   addSong: (song: SongFormDto) => void
-  updateSong: (index: number, updated: Partial<SongFormDto>) => void
-  removeSong: (index: number) => void
+  updateSong: (id: string, updated: Partial<SongFormDto>) => void
+  removeSong: (id: string) => void
   moveSong: (index: number, direction: "up" | "down") => void
 }
 
@@ -44,16 +44,16 @@ const useAlbumAdminStore = create<AlbumStore>()((set) => ({
       ...state,
       songs: [...state.songs, song],
     })),
-  updateSong: (index, updated) =>
+  updateSong: (id, updated) =>
     set((state) => ({
       ...state,
-      songs: state.songs.map((s, i) =>
-        i === index ? { ...s, ...updated } : s
+      songs: state.songs.map((s) =>
+        s.id === id ? { ...s, ...updated } : s
       ),
     })),
-  removeSong: (index) =>
+  removeSong: (id) =>
     set((state) => {
-      const filteredSongs = state.songs.filter((_, i) => i !== index);
+      const filteredSongs = state.songs.filter((s) => s.id !== id);
       const updatedSongs = filteredSongs.map((song, i) => ({
         ...song,
         position: i + 1,

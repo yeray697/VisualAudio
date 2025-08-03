@@ -69,6 +69,14 @@ export default function AlbumForm({ album, onClose }: Props) {
         deleteFiles.push({ fileType: "SongImage", songId: song.id })
       }
 
+      if (song.songLyricsFileContent?.modified && song.songLyricsFileContent?.content) {
+        const lyricsFileContent = new Blob([song.songLyricsFileContent.content], {
+          type: 'text/plain'
+        });
+        uploadFiles.push({ file: lyricsFileContent, fileType: "SongLyrics", songId: song.id })
+      } else if ((!song.songLyricsFileContent?.content) && song.songLyricsFilename) {
+        deleteFiles.push({ fileType: "SongLyrics", songId: song.id })
+      }
 
       if (song.songAudioFile instanceof File) {
         uploadFiles.push({ file: song.songAudioFile, fileType: "Song", songId: song.id })
