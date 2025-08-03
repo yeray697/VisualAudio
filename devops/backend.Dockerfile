@@ -36,8 +36,10 @@ RUN wget -O /tmp/jellyfin-ffmpeg7.deb \
     rm -rf /var/lib/apt/lists/*
 
 # Add ffmpeg to PATH
-RUN ln -s /opt/jellyfin-ffmpeg7/ffmpeg /usr/local/bin/ffmpeg && \
-    ln -s /opt/jellyfin-ffmpeg7/ffprobe /usr/local/bin/ffprobe
+RUN ffmpeg_path=$(dpkg -L jellyfin-ffmpeg7 | grep '/ffmpeg$' | head -n1) && \
+    ffprobe_path=$(dpkg -L jellyfin-ffmpeg7 | grep '/ffprobe$' | head -n1) && \
+    ln -s "$ffmpeg_path" /usr/local/bin/ffmpeg && \
+    ln -s "$ffprobe_path" /usr/local/bin/ffprobe
 
 # Verify ffmpeg
 RUN ffmpeg -version
