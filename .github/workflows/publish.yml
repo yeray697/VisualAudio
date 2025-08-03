@@ -56,29 +56,10 @@ jobs:
           file: ./devops/frontend.Dockerfile
           push: true
           platforms: linux/amd64
-          tags: ${{ steps.meta-frontend.outputs.tags }}-amd64
+          tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache-frontend-amd64
           cache-to: type=local,dest=/tmp/.buildx-cache-frontend-amd64,mode=max
-
-      - name: Build and push frontend image (arm64)
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./devops/frontend.Dockerfile
-          push: true
-          platforms: linux/arm64
-          tags: ${{ steps.meta-frontend.outputs.tags }}-arm64
-          labels: ${{ steps.meta-frontend.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache-frontend-arm64
-          cache-to: type=local,dest=/tmp/.buildx-cache-frontend-arm64,mode=max
-
-      - name: Create and push multi-arch manifest (frontend)
-        run: |
-          docker buildx imagetools create \
-            -t ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/frontend:latest \
-            ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/frontend:amd64 \
-            ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/frontend:arm64
 
   build-backend:
     needs: set-vars
@@ -115,26 +96,7 @@ jobs:
           file: ./devops/backend.Dockerfile
           push: true
           platforms: linux/amd64
-          tags: ${{ steps.meta-backend.outputs.tags }}-amd64
+          tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache-backend-amd64
           cache-to: type=local,dest=/tmp/.buildx-cache-backend-amd64,mode=max
-
-      - name: Build and push backend image (arm64)
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./devops/backend.Dockerfile
-          push: true
-          platforms: linux/arm64
-          tags: ${{ steps.meta-backend.outputs.tags }}-arm64
-          labels: ${{ steps.meta-backend.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache-backend-arm64
-          cache-to: type=local,dest=/tmp/.buildx-cache-backend-arm64,mode=max
-
-      - name: Create and push multi-arch manifest (backend)
-        run: |
-          docker buildx imagetools create \
-            -t ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/backend:latest \
-            ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/backend:amd64 \
-            ${{ env.REGISTRY }}/${{ needs.set-vars.outputs.image_name_lower }}/backend:arm64
