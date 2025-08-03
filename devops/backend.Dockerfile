@@ -12,39 +12,20 @@ RUN dotnet restore VisualAudio.sln
 
 COPY src/backend/. .
 
-RUN dotnet publish VisualAudio.Api/VisualAudio.Api.csproj -c Release -o /app/publish
+RUN dotnet publish VisualAudio.Api/VisualAudio.Api.csproj -c Release -o /app/publish \
+    -p:PublishAot=true \
+    -p:PublishTrimmed=true \
+    -p:InvariantGlobalization=true
 
 # Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim AS runtime
+FROM ubuntu:24.04 AS runtime
 WORKDIR /app
 
-# jellyfin-ffmpeg7 dependencies
+# install ffmpeg 7
 RUN apt-get update && \
-    apt-get install -y wget \
-    libxcb1 libbluray2 libelf1 libexpat1 libmp3lame0 libopenmpt0 libopus0 libpciaccess0 \
-    libtheora0 libvorbis0a libvorbisenc2 libvpx7 libwebp7 libwebpmux3 libx11-xcb1 \
-    libx264-164 libx265-199 libxcb-dri3-0 libxcb-present0 libxcb-randr0 libxcb-sync1 \
-    libxshmfence1 libzvbi0 ocl-icd-libopencl1 && \
+    apt-get install -y --no-install-recommends ffmpeg && \
     rm -rf /var/lib/apt/lists/*
-
-# jellyfin-ffmpeg7
-RUN wget -O /tmp/jellyfin-ffmpeg7.deb \
-    https://repo.jellyfin.org/files/ffmpeg/debian/latest-7.x/amd64/jellyfin-ffmpeg7_7.1.1-7-bookworm_amd64.deb && \
-    apt-get update && \
-    apt-get install -y /tmp/jellyfin-ffmpeg7.deb && \
-    rm /tmp/jellyfin-ffmpeg7.deb && \
-    rm -rf /var/lib/apt/lists/*
-
-# Add ffmpeg to PATH
-RUN ffmpeg_path=$(dpkg -L jellyfin-ffmpeg7 | grep '/ffmpeg$' | head -n1) && \
-    ffprobe_path=$(dpkg -L jellyfin-ffmpeg7 | grep '/ffprobe$' | head -n1) && \
-    ln -s "$ffmpeg_path" /usr/local/bin/ffmpeg && \
-    ln -s "$ffprobe_path" /usr/local/bin/ffprobe
-
-# Verify ffmpeg
-RUN ffmpeg -version
-
 
 COPY --from=build /app/publish .
 
-ENTRYPOINT ["dotnet", "VisualAudio.Api.dll"]
+ENTRYPOINT ["./VisualAudio.Api"]
