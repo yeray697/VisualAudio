@@ -25,8 +25,6 @@ WORKDIR /app
 COPY --from=ffmpeg /usr/local/bin/ffmpeg /usr/bin/ffmpeg
 COPY --from=ffmpeg /usr/local/bin/ffprobe /usr/bin/ffprobe
 
-RUN ffmpeg -version
-
 COPY --from=build /app/publish .
 
 ENTRYPOINT ["dotnet", "VisualAudio.Api.dll"]
