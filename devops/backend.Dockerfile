@@ -20,7 +20,7 @@ WORKDIR /app
 
 # install ffmpeg7 and runtime .NET dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates wget
+    ca-certificates wget \
     && rm -rf /var/lib/apt/lists/*
 
 # install jellyfin ffmpeg 7
