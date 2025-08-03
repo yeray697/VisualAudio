@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 using SoundFingerprinting;
 using SoundFingerprinting.Audio;
@@ -18,13 +19,16 @@ namespace VisualAudio.Services.Fingerprint
         private readonly IModelService modelService;
         private readonly IAudioService audioService;
 
-        public FingerprintService(IConfiguration config)
+        public FingerprintService(ILogger<FingerprintService> logger, IConfiguration config)
         {
-            var protocol = config["Fingerprint:Emy:Protocol"] ?? throw new ArgumentException("Missing Fingerprint__Emmy__Protocol parameter on appsettings");
-            var host = config["Fingerprint:Emy:Host"] ?? throw new ArgumentException("Missing Fingerprint__Emmy__Host parameter on appsettings");
-            var port = config["Fingerprint:Emy:Port"] ?? throw new ArgumentException("Missing Fingerprint__Emmy__Port parameter on appsettings");
+            var protocol = config["Fingerprint:Emy:Protocol"] ?? throw new ArgumentException("Missing Fingerprint__Emy__Protocol parameter on appsettings");
+            var host = config["Fingerprint:Emy:Host"] ?? throw new ArgumentException("Missing Fingerprint__Emy__Host parameter on appsettings");
+            var port = config["Fingerprint:Emy:Port"] ?? throw new ArgumentException("Missing Fingerprint__Emy__Port parameter on appsettings");
+            logger.LogInformation("Protocol: {Protocol}", protocol);
+            logger.LogInformation("Host: {Host}", host);
+            logger.LogInformation("Port: {Port}", port);
             if (!int.TryParse(port, out var portParsed) || portParsed <= 0)
-                throw new ArgumentException("Fingerprint__Emmy__Port must be a postivie int");
+                throw new ArgumentException("Fingerprint__Emy__Port must be a positive int");
 
             bool useInMemoryStorage = bool.TryParse(config["Fingerprint:InMemoryStorage"], out var result) && result;
             if (useInMemoryStorage)

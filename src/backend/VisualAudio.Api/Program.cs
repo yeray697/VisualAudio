@@ -27,6 +27,7 @@ builder.Services.AddOpenApi();
 // === Servicios propios ===
 builder.Services.RegisterServices();
 
+builder.Services.AddLogging();
 
 // Controladores
 builder.Services.AddControllers();
