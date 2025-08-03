@@ -35,6 +35,14 @@ RUN wget -O /tmp/jellyfin-ffmpeg7.deb \
     rm /tmp/jellyfin-ffmpeg7.deb && \
     rm -rf /var/lib/apt/lists/*
 
+# Add ffmpeg to PATH
+RUN ln -s /opt/jellyfin-ffmpeg7/ffmpeg /usr/local/bin/ffmpeg && \
+    ln -s /opt/jellyfin-ffmpeg7/ffprobe /usr/local/bin/ffprobe
+
+# Verify ffmpeg
+RUN ffmpeg -version
+
+
 COPY --from=build /app/publish .
 
 ENTRYPOINT ["dotnet", "VisualAudio.Api.dll"]
