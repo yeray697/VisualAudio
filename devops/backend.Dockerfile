@@ -22,8 +22,8 @@ FROM linuxserver/ffmpeg:7.1.1 AS ffmpeg
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim AS runtime
 WORKDIR /app
 
-COPY --from=ffmpeg /usr/bin/ffmpeg /usr/local/bin/ffmpeg
-COPY --from=ffmpeg /usr/bin/ffprobe /usr/local/bin/ffprobe
+COPY --from=ffmpeg /usr/local/bin/ffmpeg /usr/local/bin/ffmpeg
+COPY --from=ffmpeg /usr/local/bin/ffprobe /usr/local/bin/ffprobe
 
 RUN ffmpeg -version
 
