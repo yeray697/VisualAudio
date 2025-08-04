@@ -12,19 +12,22 @@ RUN dotnet restore VisualAudio.sln
 
 COPY src/backend/. .
 
-RUN dotnet publish VisualAudio.Api/VisualAudio.Api.csproj -c Release -o /app/publish
-
-
-FROM linuxserver/ffmpeg:7.1.1 AS ffmpeg
+RUN dotnet publish VisualAudio.Api/VisualAudio.Api.csproj \
+    -c Release \
+    -o /app/publish \
+    --self-contained \
+    -p:PublishSingleFile=true
 
 
 # Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim AS runtime
+FROM ubuntu:rolling AS runtime
 WORKDIR /app
 
-COPY --from=ffmpeg /usr/local/bin/ffmpeg /usr/bin/ffmpeg
-COPY --from=ffmpeg /usr/local/bin/ffprobe /usr/bin/ffprobe
+RUN apt update && \
+    apt install --no-install-recommends -y ffmpeg libicu76 tzdata && \
+    rm -rf /var/cache/apt
 
 COPY --from=build /app/publish .
 
-ENTRYPOINT ["dotnet", "VisualAudio.Api.dll"]
+ENTRYPOINT ["/app/VisualAudio.Api"]
+ 
