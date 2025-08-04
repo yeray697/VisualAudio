@@ -16,15 +16,17 @@ namespace VisualAudio.Services.Fingerprint
     public class FingerprintService : IFingerprintService
     {
         private const int maxSeconds = 15;
+        private readonly ILogger<FingerprintService> _logger;
         private readonly IModelService modelService;
         private readonly IAudioService audioService;
 
         public FingerprintService(ILogger<FingerprintService> logger, IConfiguration config)
         {
+            _logger = logger;
             var host = config["Fingerprint:Emy:Host"] ?? throw new ArgumentException("Missing Fingerprint__Emy__Host parameter on appsettings");
             var port = config["Fingerprint:Emy:Port"] ?? throw new ArgumentException("Missing Fingerprint__Emy__Port parameter on appsettings");
-            logger.LogInformation("Host: {Host}", host);
-            logger.LogInformation("Port: {Port}", port);
+            _logger.LogInformation("Host: {Host}", host);
+            _logger.LogInformation("Port: {Port}", port);
             if (!int.TryParse(port, out var portParsed) || portParsed <= 0)
                 throw new ArgumentException("Fingerprint__Emy__Port must be a positive int");
 
@@ -117,6 +119,7 @@ namespace VisualAudio.Services.Fingerprint
             if (!queryResult.ContainsMatches)
                 return null;
 
+            _logger.LogInformation("Match");
             var bestMatch = queryResult.BestMatch!;
             if (bestMatch != null && modelService is EmyModelService emyModelService)
                 emyModelService.RegisterMatches([bestMatch.ConvertToAvQueryMatch()], false);

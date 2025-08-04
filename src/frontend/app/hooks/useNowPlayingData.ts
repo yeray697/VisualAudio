@@ -15,7 +15,7 @@ export function usePublishToWS(message?: Message, autoFetch = false) {
 
 export function useNowPlaying(autoFetch = true) {
   return useApi<NowPlaying>({
-    endpoint: '/api/nowPlaying',
+    endpoint: '/api/fingerprint/nowplaying',
     autoFetch,
   });
 }
