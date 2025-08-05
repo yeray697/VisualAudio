@@ -1,9 +1,9 @@
-using VisualAudio.Services.Albums.Models;
+using VisualAudio.Services.Metadata.Models;
 
 namespace VisualAudio.Services.Metadata
 {
     public interface IMetadataService
     {
-        Task<AlbumDto?> GetMetadataForAlbumAsync(string artist, string album);
+        Task<AlbumMetadataDto?> GetMetadataForAlbumAsync(string artist, string album);
     }
 }

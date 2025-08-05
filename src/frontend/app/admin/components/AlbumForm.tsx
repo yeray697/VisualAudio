@@ -74,7 +74,7 @@ export default function AlbumForm({ album, onClose }: Props) {
           type: 'text/plain'
         });
         uploadFiles.push({ file: lyricsFileContent, fileType: "SongLyrics", songId: song.id })
-      } else if ((!song.songLyricsFileContent?.content) && song.songLyricsFilename) {
+      } else if (song.songLyricsFileContent?.modified && !song.songLyricsFileContent?.content && song.songLyricsFilename) {
         deleteFiles.push({ fileType: "SongLyrics", songId: song.id })
       }
 

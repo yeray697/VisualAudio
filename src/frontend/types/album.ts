@@ -24,6 +24,13 @@ export interface Album {
   updatedAt?: string;
 }
 
+export interface SongMetadata extends Song {
+  lyrics?: string;
+}
+export interface AlbumMetadata extends Album {
+  songs: SongMetadata[]
+}
+
 export type MetadataFileType = "AlbumImage" | "SongImage" | "Song" | "SongLyrics";
 
 export type FileContent = {
@@ -52,7 +59,7 @@ export function mapAlbumToForm(album: Album): AlbumFormDto {
     songs: mapSongsForm(album.songs),
   };
 }
-export function mapSongsForm(songs: Song[]): SongFormDto[] {
+export function mapSongsForm(songs: SongMetadata[]): SongFormDto[] {
   return songs.map(song => {
     const { minutes, seconds } = formatDurationToTime(song.duration);
     return {
@@ -61,7 +68,7 @@ export function mapSongsForm(songs: Song[]): SongFormDto[] {
       durationSeconds: seconds,
       songImageFile: song.songImageFilename ?? null,
       songAudioFile: song.songFilename ?? null,
-      songLyricsFileContent: null
+      songLyricsFileContent: song.lyrics ? { content: song.lyrics, modified: true } : null,
     }})
     
 }

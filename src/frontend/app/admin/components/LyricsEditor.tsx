@@ -10,10 +10,12 @@ import {
 import useAlbumAdminStore from '../../../store/adminAlbumForm';
 import { useGetAlbumFile } from '../../hooks/useAlbumMutations';
 import Editor from 'react-simple-code-editor';
+import { FileContent } from '../../../types/album';
 
 interface Props {
   open: boolean;
   songId: string;
+  existingLyrics: string | undefined;
   onClose: () => void;
 }
 
@@ -32,21 +34,27 @@ const highlightText = (code: string) => {
     );
 };
 
-export const LyricsEditorDialog = ({ songId, open, onClose }: Props) => {
+export const LyricsEditorDialog = ({ songId, existingLyrics, open, onClose }: Props) => {
   const { id: albumId, updateSong } = useAlbumAdminStore();
-  const { data: lyricsData } = useGetAlbumFile(albumId, "SongLyrics", songId, open);
+  const { data: lyricsData } = useGetAlbumFile(albumId, "SongLyrics", songId, open && !!albumId && !!songId && !existingLyrics);
 
   const [text, setText] = useState("");
   const [originalText, setOriginalText] = useState("");
 
   useEffect(() => {
-    if (open && lyricsData) {
-      lyricsData.text().then((txt) => {
-        setText(txt);
-        setOriginalText(txt);
-      });
+    if (open && (lyricsData || existingLyrics)) {
+      if (lyricsData) {
+        lyricsData.text().then((txt) => {
+          setText(txt);
+          setOriginalText(txt);
+        });
+      }
+      else {
+        setText(existingLyrics!);
+        setOriginalText(existingLyrics!);
+      }
     }
-  }, [open, lyricsData]);
+  }, [open, existingLyrics, lyricsData]);
 
   const handleInput = (text: string) => {
     setText(text || "");

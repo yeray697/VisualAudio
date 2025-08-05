@@ -1,6 +1,6 @@
 'use client';
 
-import { Album } from '../../types/album';
+import { Album, AlbumMetadata } from '../../types/album';
 import { useApi } from './useApi';
 
 export function useAlbums(autoFetch: boolean = true) {
@@ -18,7 +18,7 @@ export function useAlbum(id: string | undefined) {
 }
 
 export function useSearchMetadata(artist: string, title: string) {
-  return useApi<Album>({
+  return useApi<AlbumMetadata>({
     endpoint: `/api/albums/lookup/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`,
     autoFetch: false,
   });

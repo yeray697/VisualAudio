@@ -1,15 +1,16 @@
-using VisualAudio.Services.Albums.Models;
+using VisualAudio.Services.Metadata.Lyrics;
+using VisualAudio.Services.Metadata.Models;
 
 namespace VisualAudio.Services.Metadata
 {
-    public class MetadataService(IDiscogsService discogsService) : IMetadataService
+    public class MetadataService(IDiscogsService discogsService, ILyricsService lyricsService) : IMetadataService
     {
-        public async Task<AlbumDto?> GetMetadataForAlbumAsync(string artist, string album)
+        public async Task<AlbumMetadataDto?> GetMetadataForAlbumAsync(string artist, string album)
         {
             var release = await discogsService.GetReleaseAsync(artist, album);
             if (release == null)
                 return null;
-            return new AlbumDto()
+            var albumDto = new AlbumMetadataDto()
             {
                 Artist = artist,
                 Title = release.Title,
@@ -17,13 +18,22 @@ namespace VisualAudio.Services.Metadata
                 Songs = release.Tracklist
                     .OrderBy(t => ParseTrackPosition(t.Position).side)
                     .ThenBy(t => ParseTrackPosition(t.Position).track)
-                    .Select((s, i) => new SongDto()
+                    .Select((s, i) => new SongMetadataDto()
                     {
+                        Artist = string.Join(", ", s.Extraartists.Where(a => a.Role == "Featuring").Select(a => a.Name).Prepend(artist)),
                         Duration = GetDurationInSeconds(s.Duration),
                         Name = s.Title,
-                        Position = i + 1,
-                    })
+                        Position = i + 1
+                    }).ToList()
             };
+
+
+            foreach (var song in albumDto.Songs)
+            {
+                song.Lyrics = await lyricsService.GetLyricsAsync(song.Name, song.Duration, albumDto);
+            }
+
+            return albumDto;
         }
 
         private static int GetDurationInSeconds(string duration)

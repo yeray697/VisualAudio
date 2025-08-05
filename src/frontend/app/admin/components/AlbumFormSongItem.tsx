@@ -24,6 +24,7 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import { formatDurationToTimeString, formatTimeToDuration } from "../../../utils/timeUtils";
 import { LyricsEditorDialog } from "./LyricsEditor";
+import LyricsOutlinedIcon from '@mui/icons-material/LyricsOutlined';
 
 interface Props {
   index: number
@@ -175,6 +176,12 @@ export default function AlbumFormSongItem({ index }: Props) {
                         : "disabled"
                       }
                     />
+                    <LyricsOutlinedIcon
+                      color={(
+                        !!song.songLyricsFileContent?.content || (!!song.songLyricsFilename && !song.songLyricsFileContent?.modified)) ?
+                          "success" : "error"
+                      }
+                    />
                     <IconButton
                       onClick={(e) => {
                         e.stopPropagation();
@@ -234,14 +241,24 @@ export default function AlbumFormSongItem({ index }: Props) {
                   />
                 </Grid>
                 <Grid size={{ xs: 6 }}>
-                  <Button onClick={() => setOpenLyricsDialog(true)}>Lyrics</Button>
+                  <Button onClick={(e) => {
+                    e.stopPropagation()
+                    setOpenLyricsDialog(true);
+                    }}
+                  >
+                    Lyrics
+                  </Button>
                 </Grid>
-                <LyricsEditorDialog 
-                  open={openLyricsDialog}
-                  onClose={() => {setOpenLyricsDialog(false)}}
-                  songId={song.id}
-                />
+                <Box onClick={(e) => e.stopPropagation()}>
+                  <LyricsEditorDialog
+                    open={openLyricsDialog}
+                    onClose={() => {setOpenLyricsDialog(false)}}
+                    songId={song.id}
+                    existingLyrics={song.songLyricsFileContent?.content}
+                  />
+                </Box>
               </Grid>
+              
             </motion.div>
           </Box>
           
