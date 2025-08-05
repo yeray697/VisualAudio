@@ -7,14 +7,20 @@ import { INowPlayingSource } from "../sources/NowPlayingSource";
 export function useNowPlaying(source: INowPlayingSource | null) {
   const { nowPlaying, setNowPlaying, getCurrentPosition } = useNowPlayingStore();
 
-  useEffect(() => {
+  const refreshData = () => {
     if (!source) return;
     source.getNowPlaying().then((np) => {
+      if (!np)
+        return;
       setNowPlaying({
         ...np,
         updatedAt: new Date(),
       });
     });
+  }
+
+  useEffect(() => {
+    refreshData();
   }, [source, setNowPlaying]);
 
   // manejar fin de track
@@ -46,5 +52,5 @@ export function useNowPlaying(source: INowPlayingSource | null) {
     }
   };
 
-  return { nowPlaying, getCurrentPosition };
+  return { nowPlaying, getCurrentPosition, refreshData };
 }

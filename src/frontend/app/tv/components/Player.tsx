@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import { Lrc } from 'react-lrc';
 import { useNowPlayingStore } from '../../../store/nowPlayingStore';
 import { useGetAlbumFile } from '../../hooks/useAlbumMutations';
-import { Box } from '@mui/material';
+import { Box, Grid } from '@mui/material';
 import { LyricsLrc } from './LyricsLrc';
 import { useEffect, useState } from 'react';
 import { formatDurationToTimeString } from '../../../utils/timeUtils';
@@ -13,9 +13,11 @@ export const Player = () => {
   const getCurrentPosition = useNowPlayingStore((s) => s.getCurrentPosition);
   const [_, setTick] = useState(0);
   useEffect(() => {
+    if (!nowPlaying)
+      return;
     const interval = setInterval(() => setTick((t) => t + 1), 500);
     return () => clearInterval(interval);
-  }, []);
+  }, [nowPlaying]);
   
 
   const { data: lyricsBlob } = useGetAlbumFile(nowPlaying?.album.id ?? "", "SongLyrics", nowPlaying?.nowPlaying.id, !!nowPlaying?.nowPlaying.id)
@@ -36,11 +38,11 @@ export const Player = () => {
   }, [lyricsBlob]);
   
   return (
-    <Box>
-      <Box height={150}>
+    <Grid container>
+      <Grid size={{xs:9}} height="90vh">
         <LyricsLrc lyrics={lyrics} position={currentPosition} />
-      </Box>
-      <Box>
+      </Grid>
+      <Grid size={{xs:3}}>
         {nowPlaying && (
         <section style={{padding: "1.5rem", border: "1px solid #ccc", borderRadius: "8px", marginBottom: "2rem", background: "#333" }}>
           <h2>Canción detectada</h2>
@@ -66,7 +68,7 @@ export const Player = () => {
           </div>
         </section>
       )}
-      </Box>
-    </Box>
+      </Grid>
+    </Grid>
   );
 };

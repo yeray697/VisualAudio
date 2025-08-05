@@ -9,44 +9,16 @@ type Props = {
   position: number | undefined,
 }
 
-const Root = styled.div`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-
-  display: flex;
-  flex-direction: column;
-
-  > .lrc-box {
-    position: relative;
-
-    flex: 1;
-    min-height: 0;
-
-    &::before {
-      content: '';
-      width: 100%;
-      height: 1px;
-
-      position: absolute;
-      top: 50%;
-      left: 0;
-
-      background: rgb(255 0 0 / 0.15);
-    }
-  }
-`;
 const lrcStyle: CSSProperties = {
   height: '100%',
   padding: '5px 0',
+  overflow: 'hidden'
 };
 const Line = styled.div<{ active: boolean }>`
   min-height: 10px;
   padding: 5px 20px;
 
-  font-size: 16px;
+  font-size: 3rem;
   text-align: center;
   ${({ active }) => css`
      color: ${active ? '#cecece' : '#666'};

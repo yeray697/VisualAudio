@@ -7,6 +7,7 @@ import { DevNowPlayingControls } from "./components/DevNowPlayingControls";
 import { useNowPlaying } from "./useNowPlaying";
 import { useBackendNowPlayingSource } from "../sources/BackendNowPlayingSource";
 import { Player } from "./components/Player";
+import { Box, Grid } from "@mui/material";
 
   const album = {
     "id": "598e046c-e157-44c8-a1fb-209e01da6487",
@@ -114,15 +115,9 @@ export default function TVPage() {
 
 
 
-  const devSource = useMemo(() => new DevNowPlayingSource({
-    updatedAt: new Date(),
-    nowPlaying: album.songs[1],
-    album,
-    confidence: 1,
-    trackPosition: 0,
-  }), []);
+  const devSource = useMemo(() => new DevNowPlayingSource(), []);
 
-  const { nowPlaying } = useNowPlaying(devSource);
+  const { nowPlaying, refreshData } = useNowPlaying(devSource);
 
   // const backendSource = useBackendNowPlayingSource();
 
@@ -141,9 +136,20 @@ export default function TVPage() {
 
 
   return (
-    <main style={{padding: "2rem", maxWidth: "800px", margin: 0, fontFamily: "Arial, sans-serif"}}>
-      {/* <DevNowPlayingControls /> */}
-      <Player />
+    <main style={{padding: "2rem", width: "100%", margin: 0, fontFamily: "Arial, sans-serif"}}>
+      <Grid container>
+        <Grid size={{ xs:2 }}>
+          <DevNowPlayingControls 
+            onSelectedNowPlaying={(devNowPlaying) => {
+              devSource.setNowPlaying(devNowPlaying)
+              refreshData();
+            }}
+          />
+        </Grid>
+        <Grid size={{ xs:10 }}>
+          <Player />
+        </Grid>
+      </Grid>
     </main>
   );
 }
