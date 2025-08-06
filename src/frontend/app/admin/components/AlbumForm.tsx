@@ -1,7 +1,7 @@
 "use client";
 
 import { Album, mapAlbumToForm, mapSongsForm } from "../../../types/album";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   DialogTitle,
   DialogContent,
@@ -9,6 +9,7 @@ import {
   Button,
   TextField,
   Grid,
+  Typography,
 } from "@mui/material";
 import FileSelector from "./ImageSelector";
 import AlbumFormSongList from "./AlbumFormSongList";
@@ -19,15 +20,16 @@ import useAlbumAdminStore from "../../../store/adminAlbumForm";
 
 interface Props {
   album?: Album | null;
-  onClose: () => void;
+  onClose: (saved: boolean) => void;
 }
 export default function AlbumForm({ album, onClose }: Props) {
   const { id, albumImageFile, albumImageFilename, title, artist, songs, setAlbum, resetAlbum } = useAlbumAdminStore()
 
-  const { fetch: saveAlbumApi } = useCreateOrUpdateAlbum({ id: album?.id || "", title, artist, songs }, false);
-  const { fetch: uploadFilesApi } = useUploadAlbumFiles();
-  const { fetch: deleteFilesApi } = useDeleteAlbumFiles();
-  const { data: metadata, fetch: metadataFetch } = useSearchMetadata(artist || "", title || "");
+  const { fetch: saveAlbumApi, data: saveData, loading: saveLoading, error: apiSaveError } = useCreateOrUpdateAlbum({ id: album?.id || "", title, artist, songs }, false);
+  const { fetch: uploadFilesApi, data: uploadFilesData, loading: uploadFilesLoading, error: uploadFilesError } = useUploadAlbumFiles();
+  const { fetch: deleteFilesApi, data: deleteFilesData, loading: deleteFilesLoading, error: deleteFilesError } = useDeleteAlbumFiles();
+  const { data: metadata, loading: metadataLoading, error: metadataError, fetch: metadataFetch } = useSearchMetadata(artist || "", title || "");
+  const [ saveError, setSaveError ] = useState<string | null>();
   
   useEffect(() => {
   if (album) {
@@ -87,15 +89,29 @@ export default function AlbumForm({ album, onClose }: Props) {
 
     return { uploadFiles, deleteFiles };
   }
+
   const saveAlbum = async () => {
+    setSaveError(null)
     const savedAlbum = await saveAlbumApi();
     
     const { deleteFiles, uploadFiles } = getFilesActions();
     if (uploadFiles.length) await uploadFilesApi(savedAlbum.id, uploadFiles);
     if (deleteFiles.length) await deleteFilesApi(savedAlbum.id, deleteFiles);
-
-    onClose();
   };
+
+  useEffect(() => {
+    if (saveLoading || uploadFilesLoading || deleteFilesLoading)
+      return;
+    if (apiSaveError)
+      setSaveError(apiSaveError.message);
+    else if (uploadFilesError)
+      setSaveError(uploadFilesError.message);
+    else if (deleteFilesError)
+      setSaveError(deleteFilesError.message);
+    else if (saveData)
+      onClose(true)
+
+  }, [saveLoading, apiSaveError, saveData, uploadFilesLoading, uploadFilesError, uploadFilesData, deleteFilesLoading, deleteFilesError, deleteFilesData, onClose])
 
   return (
     <>
@@ -133,6 +149,8 @@ export default function AlbumForm({ album, onClose }: Props) {
                   startIcon={<SearchIcon />}
                   onClick={getMetadata}
                   sx={{ mt: 1 }}
+                  color={metadataError ? "error" : "info"}
+                  loading={metadataLoading}
                 >
                   Auto fill
                 </Button>
@@ -145,8 +163,10 @@ export default function AlbumForm({ album, onClose }: Props) {
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={saveAlbum} variant="contained" color="primary">
+        { saveError && <Typography color="error">An error occurred saving the album: {saveError}</Typography> }
+        { metadataError && !saveError && <Typography color="error">An error occurred searching for metadata: {metadataError.message}</Typography> }
+        <Button onClick={() => onClose(false)}>Cancel</Button>
+        <Button onClick={saveAlbum} variant="contained" color="primary" loading={ saveLoading || uploadFilesLoading || deleteFilesLoading }>
           Save
         </Button>
       </DialogActions>

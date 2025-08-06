@@ -6,5 +6,6 @@ namespace VisualAudio.Services.Fingerprint
         Task<string?> ConvertToWavAsync(Stream content);
         Task<string> StoreTrack(string path, string artist, string song, string songId, string album, string albumId);
         Task<DetectionResult?> DetectTrack(string path);
+        void DeleteTrack(string fingerprintId);
     }
 }

@@ -59,6 +59,12 @@ namespace VisualAudio.Services.Albums
 
         public async Task DeleteAlbumAsync(string id)
         {
+            var album = await GetAlbumAsync(id);
+            var fingerPrints = album?.Songs.Where(s => !string.IsNullOrEmpty(s.FingerprintId)).Select(s => s.FingerprintId!) ?? [];
+            foreach (var fingerprintId in fingerPrints)
+            {
+                fingerprintService.DeleteTrack(fingerprintId);
+            }
             await albumRepository.DeleteAlbumAsync(id); //This already delete metadata files
         }
 

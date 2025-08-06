@@ -36,7 +36,6 @@ namespace VisualAudio.Services.Fingerprint
             else
                 modelService = EmyModelService.NewInstance(host, portParsed);
             audioService = new FFmpegAudioService();
-
         }
 
         public async Task<string?> ConvertToWavAsync(Stream content)
@@ -133,7 +132,12 @@ namespace VisualAudio.Services.Fingerprint
             };
         }
 
-        private async Task<string?> StoreTmpFileAsync(Stream file)
+        public void DeleteTrack(string fingerprintId)
+        {
+            modelService.DeleteTrack(fingerprintId);
+        }
+
+        private static async Task<string?> StoreTmpFileAsync(Stream file)
         {
             if (file == null || file.Length == 0)
                 return null;

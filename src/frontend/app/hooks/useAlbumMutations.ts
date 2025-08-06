@@ -24,6 +24,14 @@ export function useCreateOrUpdateAlbum(initialAlbum: Album, autoFetch = false) {
   });
 }
 
+export function useDeleteAlbum(albumId?: string, autoFetch = false) {
+  return useApi<Album>({
+    endpoint: `/api/albums/${albumId}`,
+    method: 'DELETE',
+    autoFetch,
+  });
+}
+
 export type UploadFileEntry = { file: Blob | string; fileType: MetadataFileType; songId?: string };
 export function useUploadAlbumFiles(autoFetch = false) {
   const api = useApi<void>({ endpoint: '', method: 'PUT', autoFetch });
