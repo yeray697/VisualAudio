@@ -17,6 +17,7 @@ type AlbumStore = AlbumFormDto & AlbumStoreActions & AlbumSongActions
 
 const initialState: AlbumFormDto = {
   id: "",
+  albumType: "LP",
   artist: "",
   title: "",
   albumImageFile: null,

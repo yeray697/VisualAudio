@@ -5,6 +5,8 @@ import { Album, Song } from '../../../types/album';
 import { useState } from "react";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { NowPlaying } from "../../../types/message";
+import { PlayerElement } from "./PlayerElement";
+import { QueueItem } from "./QueueItem";
 
 type Props = {
   onSelectedNowPlaying: (nowPlaying: NowPlaying)=> void;
@@ -22,10 +24,15 @@ export const DevNowPlayingControls = ({ onSelectedNowPlaying: onSelectedSong } :
       updatedAt: new Date(Date.now())
     }
     onSelectedSong(nowPlaying);
-    setSelectedAlbum(null);
   }
   return (
-    <Box bgcolor='#666' padding={3} border={1} borderRadius={5}>
+    <PlayerElement sx={{
+          zIndex: 5, 
+          position:"absolute",
+          height: "auto",
+          width: '400px'
+      }}
+    >
       <Typography variant="h5" >Dev panel</Typography>
       {
         // If no album selected, show album list
@@ -37,7 +44,6 @@ export const DevNowPlayingControls = ({ onSelectedNowPlaying: onSelectedSong } :
             gap={2}
             padding={1}
             width='100%'
-            height='100%'
             color='#bbb'
             bgcolor='#333'
             border={1}
@@ -97,44 +103,21 @@ export const DevNowPlayingControls = ({ onSelectedNowPlaying: onSelectedSong } :
               bgcolor='#555'
             >
               {selectedAlbum.songs.map((song, _) => (
-                <Box
-                key={song.id}
-                onClick={() => selectSong(song)}
-                display='flex'
-                alignItems='center'
-                gap={2}
-                padding={1}
-                width='100%'
-                height='auto'
-                color='#bbb'
-                bgcolor='#333'
-                border={1}
-                borderColor='#666'
-                borderRadius={5}
-                sx={{
-                  userSelect: 'none',
-                  transition: 'background 0.3s ease, box-shadow 0.3s ease',
-                  '&:hover': {
-                    background: '#555',
-                    color: '#fff',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                  },
-                  cursor: 'pointer'
-                }}
+                <Box 
+                  key={song.id}
+                  onClick={() => selectSong(song)}
                 >
-                  <Box width='56px'>
-                    <FileSelector albumId={song.id} value={song.songImageFilename ?? null} readonly onChange={() =>{}} />
-                  </Box>
-                  <Box display='flex' flexDirection='column' justifyContent='space-around' flex={1}>
-                    <Typography>{song.name}</Typography>
-                    <Typography>{song.artist ?? "(No artist)"}</Typography>
-                  </Box>
+                  <QueueItem 
+                    albumId={selectedAlbum.id}
+                    song={song}
+                    fallbackImage={selectedAlbum.albumImageFilename}
+                  />
                 </Box>
               ))}
             </Box>
           </Box>
         )
       }
-    </Box>
+    </PlayerElement>
   );
 };

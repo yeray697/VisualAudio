@@ -7,6 +7,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
 import { Config, ConfigProvider } from "./providers/ConfigProvider";
 import ClientLocalizationProvider from "./providers";
+import { GlobalStyles } from "@mui/material";
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -58,6 +59,21 @@ export default function RootLayout({
   return (
     <html lang="en" className={roboto.variable}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <GlobalStyles
+          styles={{
+            '@keyframes backgroundPan': {
+              '0%': {
+                transform: 'scale(1.2) translate(0, 0)',
+              },
+              '50%': {
+                transform: 'scale(1.2) translate(10px, 10px)',
+              },
+              '100%': {
+                transform: 'scale(1.2) translate(0, 0)',
+              },
+            },
+          }}
+        />
         <ConfigProvider config={config}>
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>

@@ -1,6 +1,6 @@
 "use client";
 import styled from '@emotion/styled';
-import { css } from '@mui/material';
+import { Box, css } from '@mui/material';
 import { CSSProperties } from 'react';
 import { Lrc, useRecoverAutoScrollImmediately } from 'react-lrc';
 
@@ -18,21 +18,36 @@ const Line = styled.div<{ active: boolean }>`
   min-height: 10px;
   padding: 5px 20px;
 
-  font-size: 3rem;
+  ${({ active }) => css`
+     font-size: ${active ? 'clamp(2rem, 5vw, 3.2rem)' : 'clamp(1.8rem, 4vw, 3rem)'};
+   `}
+  ${({ active }) => css`
+     font-weight: ${active ? '600' : '400'};
+   `}
+  ${({ active }) => css`
+     scroll-margin-block: ${active ? '10px' : '0px'};
+   `}
   text-align: center;
   ${({ active }) => css`
-     color: ${active ? '#cecece' : '#666'};
+     color: ${active ? '#white' : '#888'};
    `}
+  textShadow: "0 0 4px rgba(0,0,0,0.6)";
+    transition: "all 0.3s ease",
   
 `;
 const log = console.log.bind(console);
 
 export const LyricsLrc = ( { lyrics, position } : Props) => {
 
-  const { signal, recoverAutoScrollImmediately } =
+  const { signal } =
     useRecoverAutoScrollImmediately();
   return (
-    <>
+    <Box sx={{    position: 'relative',
+    overflowY: 'auto',
+    height: '100%',
+    maskImage: 'linear-gradient(to bottom, transparent, black 50px, black calc(100% - 300px), transparent 100%)',
+    WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 100px, black calc(100% - 300px), transparent 100%)',
+}}>
       <Lrc
         lrc={lyrics}
         lineRenderer={({ active, line: { content } }) => (
@@ -46,6 +61,6 @@ export const LyricsLrc = ( { lyrics, position } : Props) => {
         onLineUpdate={log}
         onAutoScrollChange={log}
       />
-    </>
+    </Box>
   );
 };

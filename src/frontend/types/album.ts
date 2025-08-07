@@ -16,6 +16,7 @@ export interface Song {
 
 export interface Album {
   id: string;
+  albumType: AlbumType;
   title: string;
   artist: string;
   albumImageFilename?: string;
@@ -32,6 +33,8 @@ export interface AlbumMetadata extends Album {
 }
 
 export type MetadataFileType = "AlbumImage" | "SongImage" | "Song" | "SongLyrics";
+export const albumTypes = ["CD", "LP", "Casette"] as const;
+export type AlbumType = typeof albumTypes[number];
 
 export type FileContent = {
   content: string,

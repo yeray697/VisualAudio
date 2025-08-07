@@ -10,6 +10,7 @@ export function useCreateOrUpdateAlbum(initialAlbum: Album, autoFetch = false) {
     method: initialAlbum.id ? 'PUT' : 'POST',
     body: {
       id: initialAlbum.id,
+      albumType: initialAlbum.albumType,
       title: initialAlbum.title,
       artist: initialAlbum.artist,
       songs: initialAlbum.songs.map(({ id, name, position, duration }) => ({

@@ -32,8 +32,9 @@ namespace VisualAudio.Services.Albums
             var existing = await albumRepository.GetAlbumAsync(id);
             if (existing == null) throw new FileNotFoundException("Album not found.");
 
-            //Not overriding images. Thaat is handled on a different endpoint/service
+            //Not overriding images. That is handled on a different endpoint/service
             existing.Artist = album.Artist;
+            existing.AlbumType = (AlbumType)album.AlbumType;
             existing.CreatedAt = album.CreatedAt;
             existing.Id = album.Id;
             existing.Title = album.Title;
@@ -161,6 +162,7 @@ namespace VisualAudio.Services.Albums
             return new()
             {
                 Artist = albumDto.Artist,
+                AlbumType = (AlbumType)albumDto.AlbumType,
                 CreatedAt = albumDto.CreatedAt,
                 Id = albumDto.Id,
                 Title = albumDto.Title,
@@ -186,6 +188,7 @@ namespace VisualAudio.Services.Albums
             return new()
             {
                 Artist = album.Artist,
+                AlbumType = (AlbumTypeDto)album.AlbumType,
                 CreatedAt = album.CreatedAt,
                 Id = album.Id,
                 Title = album.Title,

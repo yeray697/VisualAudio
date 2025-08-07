@@ -1,6 +1,6 @@
 "use client";
 
-import { Album, mapAlbumToForm, mapSongsForm } from "../../../types/album";
+import { Album, albumTypes, mapAlbumToForm, mapSongsForm } from "../../../types/album";
 import { useEffect, useState } from "react";
 import {
   DialogTitle,
@@ -10,6 +10,11 @@ import {
   TextField,
   Grid,
   Typography,
+  Select,
+  MenuItem,
+  Box,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import FileSelector from "./ImageSelector";
 import AlbumFormSongList from "./AlbumFormSongList";
@@ -23,9 +28,9 @@ interface Props {
   onClose: (saved: boolean) => void;
 }
 export default function AlbumForm({ album, onClose }: Props) {
-  const { id, albumImageFile, albumImageFilename, title, artist, songs, setAlbum, resetAlbum } = useAlbumAdminStore()
+  const { id, albumImageFile, albumImageFilename, title, albumType, artist, songs, setAlbum, resetAlbum } = useAlbumAdminStore()
 
-  const { fetch: saveAlbumApi, data: saveData, loading: saveLoading, error: apiSaveError } = useCreateOrUpdateAlbum({ id: album?.id || "", title, artist, songs }, false);
+  const { fetch: saveAlbumApi, data: saveData, loading: saveLoading, error: apiSaveError } = useCreateOrUpdateAlbum({ id: album?.id || "", albumType, title, artist, songs }, false);
   const { fetch: uploadFilesApi, data: uploadFilesData, loading: uploadFilesLoading, error: uploadFilesError } = useUploadAlbumFiles();
   const { fetch: deleteFilesApi, data: deleteFilesData, loading: deleteFilesLoading, error: deleteFilesError } = useDeleteAlbumFiles();
   const { data: metadata, loading: metadataLoading, error: metadataError, fetch: metadataFetch } = useSearchMetadata(artist || "", title || "");
@@ -143,17 +148,33 @@ export default function AlbumForm({ album, onClose }: Props) {
                   onChange={(e) => setAlbum( { title: e.target.value })}
                 />
               </Grid>
-              <Grid size={{xs: 12 }} display='flex' justifyContent='flex-end'>
 
-                <Button
-                  startIcon={<SearchIcon />}
-                  onClick={getMetadata}
-                  sx={{ mt: 1 }}
-                  color={metadataError ? "error" : "info"}
-                  loading={metadataLoading}
-                >
-                  Auto fill
-                </Button>
+              <Grid size={{xs: 12 }}>
+                <Box display='flex' justifyContent='space-between'>
+                  <FormControl>
+                    <InputLabel id="album-type-select-label">Type</InputLabel>
+
+                    <Select
+                      labelId="album-type-select-label"
+                      id="album-type-select"
+                      value={albumType}
+                      label="Type"
+                      onChange={(e) => setAlbum( { albumType: e.target.value })}
+                    >
+                      { albumTypes.map(t => (<MenuItem key={t} value={t}>{t}</MenuItem>)) }
+                    </Select>
+                  </FormControl>
+
+                  <Button
+                    startIcon={<SearchIcon />}
+                    onClick={getMetadata}
+                    sx={{ mt: 1 }}
+                    color={metadataError ? "error" : "info"}
+                    loading={metadataLoading}
+                  >
+                    Auto fill
+                  </Button>
+                </Box>
               </Grid>
             </Grid>
           </Grid>
