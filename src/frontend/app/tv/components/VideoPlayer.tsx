@@ -7,11 +7,7 @@ export const VideoPlayer = () => {
   return (
     <Box
       sx={{
-        width: "100%",
-        aspectRatio: "16 / 9",
-        borderRadius: 2,
-        overflow: "hidden",
-        boxShadow: 3,
+        height:'100%'
       }}
     >
       <iframe
