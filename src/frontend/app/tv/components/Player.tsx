@@ -138,10 +138,9 @@ export const Player = () => {
         }
 
         {queueHeight !== '0%' && nowPlaying && (
-          <PlayerElement sx={{ height: queueHeight }}>
+          <PlayerElement sx={{ height: queueHeight, overflow: 'hidden' }}>
             <Queue
-              albumId={nowPlaying.album.id}
-              fallbackImage={nowPlaying.album.albumImageFilename}
+              album={nowPlaying.album}
               songs={nowPlaying?.album.songs}
               position={nowPlaying?.nowPlaying.position}
             />

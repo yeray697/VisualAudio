@@ -9,6 +9,14 @@ export function getAlbumFileUrl(baseUrl: string, fileName: FileLike | undefined,
   return `${url}/${fileName}`;
 }
 
+export function getSongImageWithFallback(baseUrl: string, fileName: FileLike | undefined, fallbackImage: FileLike | undefined, albumId: string, songId: string | undefined = undefined): string | null {
+  return fileName 
+    ? getAlbumFileUrl(baseUrl, fileName, albumId, songId)
+    : fallbackImage 
+      ? getAlbumFileUrl(baseUrl, fallbackImage, albumId)
+      : null
+}
+
 export function isValidUrl(str: string | null): boolean {
   if (!str)
     return false;

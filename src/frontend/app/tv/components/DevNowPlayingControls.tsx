@@ -108,9 +108,8 @@ export const DevNowPlayingControls = ({ onSelectedNowPlaying: onSelectedSong } :
                   onClick={() => selectSong(song)}
                 >
                   <QueueItem 
-                    albumId={selectedAlbum.id}
+                    album={selectedAlbum}
                     song={song}
-                    fallbackImage={selectedAlbum.albumImageFilename}
                   />
                 </Box>
               ))}

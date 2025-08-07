@@ -2,23 +2,18 @@
 
 import { Box, CardMedia, Typography } from '@mui/material';
 import { useConfig } from '../../providers/ConfigProvider';
-import { Song } from '../../../types/album';
-import { getAlbumFileUrl } from '../../../utils/albumFileUtils';
+import { Album, Song } from '../../../types/album';
+import { getSongImageWithFallback } from '../../../utils/albumFileUtils';
 import { formatDurationToTimeString } from '../../../utils/timeUtils';
 
 type Props = {
   song: Song,
-  albumId: string
-  fallbackImage?: string
+  album: Album
 }
 
-export const QueueItem = ({ song, albumId, fallbackImage } : Props) => {
+export const QueueItem = ({ song, album } : Props) => {
   const config = useConfig();
-  const imageUrl = song.songImageFilename 
-    ? getAlbumFileUrl(config.apiUrl, song.songImageFilename, albumId, song.id)
-    : fallbackImage 
-      ? getAlbumFileUrl(config.apiUrl, fallbackImage, albumId)
-      : null
+  const imageUrl = getSongImageWithFallback(config.apiUrl, song.songImageFilename, album.albumImageFilename, album.id, song.id)
   return (
     <Box
       display='flex'
@@ -55,9 +50,6 @@ export const QueueItem = ({ song, albumId, fallbackImage } : Props) => {
             }}
             
             image={imageUrl ?? undefined}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
           />
         </Box>
       </Box>
@@ -76,7 +68,7 @@ export const QueueItem = ({ song, albumId, fallbackImage } : Props) => {
         </Box>
 
         <Box sx={{ flexBasis: '33.33%', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          <Typography noWrap textOverflow='ellipsis'>{song.artist ?? "(No artist)"}</Typography>
+          <Typography noWrap textOverflow='ellipsis'>{song.artist ?? album.artist ?? "(No artist)"}</Typography>
         </Box>
 
         <Box sx={{ flexBasis: '33.33%', textAlign: 'right' }}>
