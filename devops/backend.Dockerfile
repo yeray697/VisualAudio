@@ -24,7 +24,7 @@ FROM ubuntu:rolling AS runtime
 WORKDIR /app
 
 RUN apt update && \
-    apt install --no-install-recommends -y ffmpeg libicu76 tzdata && \
+    apt install --no-install-recommends -y ffmpeg libicu76 tzdata ca-certificates&& \
     rm -rf /var/cache/apt
 
 COPY --from=build /app/publish .
