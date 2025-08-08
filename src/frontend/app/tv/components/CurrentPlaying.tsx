@@ -5,11 +5,16 @@ import { formatDurationToTimeString } from '../../../utils/timeUtils';
 import { useConfig } from '../../providers/ConfigProvider';
 import { getSongImageWithFallback } from '../../../utils/albumFileUtils';
 import { Box, CardMedia, LinearProgress, Typography } from '@mui/material';
+import { useBlurhashContext } from './BlurhashProvider';
 
-export const CurrentPlaying = () => {
+type Props = {
+  big?: boolean
+}
+export const CurrentPlaying = ({ big }: Props) => {
   const config = useConfig();
   const { nowPlaying } = useNowPlayingStore();
   const getCurrentPosition = useNowPlayingStore((s) => s.getCurrentPosition);
+  const { textColor } = useBlurhashContext();
 
   const currentPosition = getCurrentPosition();
   const positionStr = nowPlaying ? formatDurationToTimeString(currentPosition) : "";
@@ -26,8 +31,13 @@ export const CurrentPlaying = () => {
   return (
     <>
       {nowPlaying && 
-        <Box display='flex' height='100%' gap={1}>
-          <Box height='100%'>
+        <Box display='flex' height='100%' gap={1} flexDirection={big ? 'column' : 'row'}>
+          <Box height='100%' 
+            sx={{
+              aspectRatio: "1 / 1",
+              maxHeight: '100%',
+            }}
+          >
             <CardMedia
               component="img"
               width='100%'
@@ -47,7 +57,19 @@ export const CurrentPlaying = () => {
               <Typography fontSize='0.90rem' fontWeight='regular' >{nowPlaying.album.title}</Typography>
             </Box>
             <Box display='flex' flexDirection='column' alignItems='flex-end' width='100%' gap={1}>
-              <LinearProgress sx={{ width: '100%', height: '5px', borderRadius: 1}} variant="determinate" value={currentPosition * 100 / nowPlaying.nowPlaying.duration} />
+              <LinearProgress
+                sx={{
+                  width: '100%',
+                  height: '5px',
+                  borderRadius: 1,
+                  backgroundColor: 'rgba(0,0,0,0.1)',
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: textColor,
+                    transition: 'background-color 0.3s ease',
+                  },
+                }}
+                variant="determinate" value={currentPosition * 100 / nowPlaying.nowPlaying.duration}
+              />
               <Typography variant='subtitle2'>{positionDisplay}</Typography>
             </Box>
           </Box>

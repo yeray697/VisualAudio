@@ -96,11 +96,6 @@ export const DevNowPlayingControls = ({ onSelectedNowPlaying: onSelectedSong } :
               padding={1}
               width='100%'
               height='100%'
-              color='#fff'
-              border={1}
-              borderColor='#666'
-              borderRadius={5}
-              bgcolor='#555'
             >
               {selectedAlbum.songs.map((song, _) => (
                 <Box 

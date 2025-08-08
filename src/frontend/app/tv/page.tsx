@@ -6,6 +6,7 @@ import { DevNowPlayingControls } from "./components/DevNowPlayingControls";
 import { useNowPlaying } from "./useNowPlaying";
 import { useBackendNowPlayingSource } from "../sources/BackendNowPlayingSource";
 import { Player } from "./components/Player";
+import { BlurhashProvider } from "./components/BlurhashProvider";
 
 export default function TVPage() {
 
@@ -32,14 +33,14 @@ export default function TVPage() {
 
 
   return (
-    <>
+    <BlurhashProvider>
       <DevNowPlayingControls 
         onSelectedNowPlaying={(devNowPlaying) => {
           devSource.setNowPlaying(devNowPlaying)
           refreshData();
         }}
-      />
+        />
       <Player />
-    </>
+    </BlurhashProvider>
   );
 }

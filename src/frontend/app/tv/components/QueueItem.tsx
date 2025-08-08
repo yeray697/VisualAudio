@@ -39,7 +39,12 @@ export const QueueItem = ({ song, album } : Props) => {
       >
       <Box display="flex" alignItems='center' gap={2}>
         <Typography width='2ch'>{song.position}</Typography>
-        <Box width='56px'>
+        <Box width='56px' height='100%'
+            sx={{
+              aspectRatio: "1 / 1",
+              maxHeight: '100%',
+            }}
+          >
           <CardMedia
             component="img"
             width='100%'

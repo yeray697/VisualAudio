@@ -49,16 +49,43 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference(options =>
     {
         options.Title = "VisualAudio API";
-        options.Theme = ScalarTheme.Default; // Puedes probar Dark o Purple
+        options.Theme = ScalarTheme.Default;
     });
 }
 
 // === Middleware ===
 app.UseCors("AllowAll");
-app.UseStaticFiles(); // Servir wwwroot
 app.UseRouting();
 app.UseAuthorization();
+// Middleware para imágenes JPEG en /albums
+app.UseWhen(
+    context =>
+        context.Request.Path.StartsWithSegments("/albums"),
+    appBuilder =>
+    {
+        appBuilder.Use(async (context, next) =>
+        {
+            context.Response.OnStarting(() =>
+            {
+                context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+                return Task.CompletedTask;
+            });
 
+            await next();
+        });
+    }
+);
+// app.Use(async (context, next) =>
+// {
+//     await next();
+
+//     var path = context.Request.Path.Value;
+//     if (path != null && path.Contains("/albums/") && path.EndsWith(".jpeg"))
+//     {
+//         context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+//     }
+// });
+app.UseStaticFiles(); // Servir wwwroot
 app.MapControllers();
 
 // Servir index.html por defecto si alguien entra a /
