@@ -1,24 +1,26 @@
-"use client";
+'use client';
 
-import { Box, SxProps, Theme } from "@mui/material";
-import { ReactNode } from "react";
-import { useBlurhashContext } from "./BlurhashProvider";
+import { Box, SxProps, Theme } from '@mui/material';
+import { ReactNode } from 'react';
+import { useBlurhashContext } from './BlurhashProvider';
 
 type Props = {
-  children?: ReactNode
+  children?: ReactNode;
   sx?: SxProps<Theme>;
-}
-export const PlayerElement = ({ children, sx } : Props) => {
+};
+export const PlayerElement = ({ children, sx }: Props) => {
+  console.log('Render <PlayerElement>');
   const { textColor, overlayColor, dominantColor } = useBlurhashContext();
 
   return (
-    <Box style={{}}
+    <Box
+      style={{}}
       sx={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
 
-        backdropFilter: "blur(12px)",
+        backdropFilter: 'blur(12px)',
         backgroundColor: overlayColor,
         borderRadius: 4,
         padding: 4,
@@ -27,10 +29,10 @@ export const PlayerElement = ({ children, sx } : Props) => {
         border: `1px solid ${dominantColor}`,
         color: textColor,
         // boxShadow: `0 0 5px ${dominantColor}`,
-        ...sx, 
+        ...sx,
       }}
     >
-     {children} 
+      {children}
     </Box>
   );
 };

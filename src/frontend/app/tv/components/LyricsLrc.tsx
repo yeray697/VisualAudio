@@ -1,19 +1,19 @@
-"use client";
+'use client';
 import styled from '@emotion/styled';
-import { Box, css } from '@mui/material';
+import { Box } from '@mui/material';
 import { CSSProperties } from 'react';
 import { Lrc, useRecoverAutoScrollImmediately } from 'react-lrc';
 import { useBlurhashContext } from './BlurhashProvider';
+import { useNowPlayingStore } from '../../../store/nowPlayingStore';
 
 type Props = {
-  lyrics: string,
-  position: number | undefined,
-}
+  lyrics: string;
+};
 
 const lrcStyle: CSSProperties = {
   height: '100%',
   padding: '5px 0',
-  overflow: 'hidden'
+  overflow: 'hidden',
 };
 
 const Line = styled.div<{
@@ -30,19 +30,20 @@ const Line = styled.div<{
   font-size: ${({ active }) =>
     active ? 'clamp(2rem, 5vw, 3.2rem)' : 'clamp(1.8rem, 4vw, 3rem)'};
   font-weight: ${({ active }) => (active ? 600 : 400)};
-  color: ${({ active, textColor, fadedColor }) => (active ? textColor : fadedColor)};
+  color: ${({ active, textColor, fadedColor }) =>
+    active ? textColor : fadedColor};
   text-shadow: ${({ textShadow }) => textShadow};
 
   transition: all 0.3s ease;
 `;
 const log = console.log.bind(console);
 
-export const LyricsLrc = ( { lyrics, position } : Props) => {
+export const LyricsLrc = ({ lyrics }: Props) => {
+  console.log('Render <LyricsLrc>');
+  const position = useNowPlayingStore(state => state.position);
 
   const { textColor, dominantColor, fadedTextColor } = useBlurhashContext();
-  const { signal } =
-    useRecoverAutoScrollImmediately();
-
+  const { signal } = useRecoverAutoScrollImmediately();
 
   const generateTextShadow = (color: string) => {
     // Si fondo oscuro, sombra clara, si fondo claro, sombra oscura y suave
@@ -54,7 +55,7 @@ export const LyricsLrc = ( { lyrics, position } : Props) => {
       const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
       return luminance;
     })();
-    
+
     if (luminance < 60) return '0 0 4px rgba(0, 0, 0, 0.6)';
     if (luminance < 128) return '0 0 4px rgba(0, 0, 0, 0.4)';
     if (luminance < 180) return '0 0 4px rgba(0, 0, 0, 0.2)';
@@ -63,16 +64,28 @@ export const LyricsLrc = ( { lyrics, position } : Props) => {
 
   const textShadow = generateTextShadow(dominantColor);
   return (
-    <Box sx={{    position: 'relative',
-    overflowY: 'auto',
-    height: '100%',
-    maskImage: 'linear-gradient(to bottom, transparent, black 50px, black calc(100% - 300px), transparent 100%)',
-    WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 100px, black calc(100% - 300px), transparent 100%)',
-}}>
+    <Box
+      sx={{
+        position: 'relative',
+        overflowY: 'auto',
+        height: '100%',
+        maskImage:
+          'linear-gradient(to bottom, transparent, black 50px, black calc(100% - 300px), transparent 100%)',
+        WebkitMaskImage:
+          'linear-gradient(to bottom, transparent, black 100px, black calc(100% - 300px), transparent 100%)',
+      }}
+    >
       <Lrc
         lrc={lyrics}
         lineRenderer={({ active, line: { content } }) => (
-          <Line active={active} textColor={textColor} fadedColor={fadedTextColor} textShadow={textShadow}>{content}</Line>
+          <Line
+            active={active}
+            textColor={textColor}
+            fadedColor={fadedTextColor}
+            textShadow={textShadow}
+          >
+            {content}
+          </Line>
         )}
         currentMillisecond={(position ?? 0) * 1000}
         verticalSpace={true}

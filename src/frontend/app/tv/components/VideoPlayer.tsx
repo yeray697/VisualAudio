@@ -1,13 +1,14 @@
-"use client";
+'use client';
 
 import { Box } from '@mui/material';
 
 export const VideoPlayer = () => {
+  console.log('Render <VideoPlayer>');
 
   return (
     <Box
       sx={{
-        height:'100%'
+        height: '100%',
       }}
     >
       <iframe
