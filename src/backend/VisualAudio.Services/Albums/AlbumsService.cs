@@ -1,4 +1,4 @@
-using VisualAudio.Services.Albums.Models;
+﻿using VisualAudio.Services.Albums.Models;
 using VisualAudio.Data.Albums;
 using VisualAudio.Data.Albums.Models;
 using VisualAudio.Services.Fingerprint;
@@ -96,6 +96,11 @@ namespace VisualAudio.Services.Albums
                     filename = song.SongLyricsFilename;
                     song.SongLyricsFilename = null;
                 }
+                else if (fileType == MetadataFileType.SongVideo)
+                {
+                    filename = song.SongVideoFilename;
+                    song.SongVideoFilename = null;
+                }
             }
             if (!string.IsNullOrEmpty(filename))
             {
@@ -103,6 +108,16 @@ namespace VisualAudio.Services.Albums
                 await albumMetadataRepository.DeleteFileForAlbumAsync(identifier);
                 await albumRepository.UpdateAlbumAsync(albumId, album);
             }
+        }
+        public async Task UpdateVideoSongAsync(string albumId, string songId, string filename)
+        {
+            var album = await albumRepository.GetAlbumAsync(albumId);
+
+            var song = album.Songs.First(s => s.Id == songId);
+            song.SongVideoFilename = filename;
+
+            await albumRepository.UpdateAlbumAsync(albumId, album);
+
         }
 
         public async Task UpsertMetadataFileAsync(MetadataFileType fileType, string fileExtension, Stream content, string albumId, string? songId = null)
@@ -179,6 +194,7 @@ namespace VisualAudio.Services.Albums
                     SongImageFilename = s.SongImageFilename,
                     SongFilename = s.SongFilename,
                     SongLyricsFilename = s.SongLyricsFilename,
+                    SongVideoFilename = s.SongVideoFilename,
                     FingerprintId = s.FingerprintId
                 })
             };
@@ -203,6 +219,7 @@ namespace VisualAudio.Services.Albums
                     SongImageFilename = s.SongImageFilename,
                     SongFilename = s.SongFilename,
                     SongLyricsFilename = s.SongLyricsFilename,
+                    SongVideoFilename = s.SongVideoFilename,
                     FingerprintId = s.FingerprintId,
                     Position = s.Position,
                     UpdatedAt = s.UpdatedAt,

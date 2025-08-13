@@ -1,7 +1,7 @@
 // hooks/useAlbumMutations.ts
 'use client';
 
-import { Album, MetadataFileType } from '../../types/album';
+import { Album, MetadataFileType, VideoRequestDto } from '../../types/album';
 import { useApi } from './useApi';
 
 export function useCreateOrUpdateAlbum(initialAlbum: Album, autoFetch = false) {
@@ -21,7 +21,7 @@ export function useCreateOrUpdateAlbum(initialAlbum: Album, autoFetch = false) {
       })),
     },
     autoFetch,
-    mapFn: (res) => ({ ...initialAlbum, id: res.id } as Album),
+    mapFn: res => ({ ...initialAlbum, id: res.id } as Album),
   });
 }
 
@@ -33,14 +33,15 @@ export function useDeleteAlbum(albumId?: string, autoFetch = false) {
   });
 }
 
-export type UploadFileEntry = { file: Blob | string; fileType: MetadataFileType; songId?: string };
+export type UploadFileEntry = {
+  file: Blob | string;
+  fileType: MetadataFileType;
+  songId?: string;
+};
 export function useUploadAlbumFiles(autoFetch = false) {
   const api = useApi<void>({ endpoint: '', method: 'PUT', autoFetch });
 
-  const fetch = async (
-    albumId: string,
-    files: Array<UploadFileEntry>
-  ) => {
+  const fetch = async (albumId: string, files: Array<UploadFileEntry>) => {
     for (const { file, fileType, songId } of files) {
       const queryParams = [];
       if (songId) queryParams.push(`songId=${encodeURIComponent(songId)}`);
@@ -51,8 +52,11 @@ export function useUploadAlbumFiles(autoFetch = false) {
       } else {
         queryParams.push(`url=${encodeURIComponent(file)}`);
       }
-      const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
-      console.log(`Uploading file ${fileType}. Album ${albumId}. SongId ${songId}`)
+      const queryString =
+        queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+      console.log(
+        `Uploading file ${fileType}. Album ${albumId}. SongId ${songId}`
+      );
       await api.fetch({
         endpoint: `/api/albums/${albumId}/file/${fileType}${queryString}`,
         method: 'PUT',
@@ -64,18 +68,16 @@ export function useUploadAlbumFiles(autoFetch = false) {
   return { ...api, fetch };
 }
 
-
 export type DeleteFileEntry = { fileType: MetadataFileType; songId?: string };
 export function useDeleteAlbumFiles(autoFetch = false) {
   const api = useApi<void>({ endpoint: '', method: 'DELETE', autoFetch });
 
-  const fetch = async (
-    albumId: string,
-    files: Array<DeleteFileEntry>
-  ) => {
+  const fetch = async (albumId: string, files: Array<DeleteFileEntry>) => {
     for (const { fileType, songId } of files) {
       const query = songId ? `?songId=${encodeURIComponent(songId)}` : '';
-      console.log(`Deleting file ${fileType}. Album ${albumId}. SongId ${songId}`)
+      console.log(
+        `Deleting file ${fileType}. Album ${albumId}. SongId ${songId}`
+      );
       await api.fetch({
         endpoint: `/api/albums/${albumId}/file/${fileType}${query}`,
         method: 'DELETE',
@@ -86,15 +88,36 @@ export function useDeleteAlbumFiles(autoFetch = false) {
   return { ...api, fetch };
 }
 
+export function useUpdateVideo(autoFetch = false) {
+  const api = useApi<void>({ endpoint: '', method: 'DELETE', autoFetch });
 
+  const fetch = async (requests: VideoRequestDto[]) => {
+    for (const rq of requests) {
+      console.log(
+        `Downloading video ${rq.videoUrl}. Album ${rq.albumId}. SongId ${rq.songId}`
+      );
+      await api.fetch({
+        endpoint: `/api/albums/downloadVideo`,
+        method: 'PUT',
+        body: rq,
+      });
+    }
+  };
 
-export function useGetAlbumFile(albumId: string, filetype: MetadataFileType, songId?: string, autoFetch = true) {
-  const query = songId ? `?songId=${encodeURIComponent(songId)}` : "";
+  return { ...api, fetch };
+}
+export function useGetAlbumFile(
+  albumId: string,
+  filetype: MetadataFileType,
+  songId?: string,
+  autoFetch = true
+) {
+  const query = songId ? `?songId=${encodeURIComponent(songId)}` : '';
   return useApi<Blob>({
     endpoint: `/api/albums/${albumId}/file/${filetype}${query}`,
     method: 'GET',
     autoFetch,
-    mapFn: (res) => res as Blob,
-    responseType: "blob"
+    mapFn: res => res as Blob,
+    responseType: 'blob',
   });
 }

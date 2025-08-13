@@ -11,6 +11,7 @@ namespace VisualAudio.Data.Albums.Models
         public string? SongFilename { get; set; }
         public string? SongLyricsFilename { get; set; }
         public string? SongImageFilename { get; set; }
+        public string? SongVideoFilename { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; } = DateTime.UtcNow;
     }

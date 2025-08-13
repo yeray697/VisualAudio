@@ -5,10 +5,7 @@
       "label": "build",
       "command": "dotnet",
       "type": "process",
-      "args": [
-        "build",
-        "${workspaceFolder}/src/backend/VisualAudio.sln"
-      ],
+      "args": ["build", "${workspaceFolder}/src/backend/VisualAudio.sln"],
       "problemMatcher": "$msCompile",
       "group": {
         "kind": "build",
@@ -26,9 +23,9 @@
     {
       "label": "Run Next.js",
       "type": "shell",
-      "command": "bash -i -c 'npm run dev'",
+      "command": "npm run dev",
       "options": {
-        "cwd": "src/frontend",
+        "cwd": "src/frontend"
       },
       "group": "build",
       "isBackground": true

@@ -12,6 +12,7 @@ namespace VisualAudio.Services.Albums
 
         Task DeleteMetadataFileAsync(MetadataFileType fileType, string albumId, string? songId = null);
         Task UpsertMetadataFileAsync(MetadataFileType fileType, string fileExtension, Stream content, string albumId, string? songId = null);
+        Task UpdateVideoSongAsync(string albumId, string songId, string filename);
         Task<Stream?> GetMetadataFileAsync(MetadataFileType fileType, string albumId, string? songId = null);
     }
 }

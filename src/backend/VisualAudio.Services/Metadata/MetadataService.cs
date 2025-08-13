@@ -1,12 +1,21 @@
 using VisualAudio.Services.Metadata.Lyrics;
 using VisualAudio.Services.Metadata.Models;
+using VisualAudio.Services.Video;
 
 namespace VisualAudio.Services.Metadata
 {
-    public class MetadataService(IDiscogsService discogsService, ILyricsService lyricsService) : IMetadataService
+    public class MetadataService(IDiscogsService discogsService, ILyricsService lyricsService, IVideoDownloaderService videoDownloader) : IMetadataService
     {
         public async Task<AlbumMetadataDto?> GetMetadataForAlbumAsync(string artist, string album)
         {
+            // await videoDownloader.DownloadVideo(new()
+            // {
+            //     AlbumId = "cf867741-cfd6-4213-bb3f-ef914891df71",
+            //     SongId = "81c0c0df-2635-4c26-b75f-24bc2e9eb36c",
+            //     Filename = "song-video",
+            //     VideoUrl = "https://www.youtube.com/watch?v=yG96RttfZtM",
+            //     VideoSegments = [new() { Start = 3.5, End = 184 }]
+            // });
             var release = await discogsService.GetReleaseAsync(artist, album);
             if (release == null)
                 return null;
@@ -15,6 +24,13 @@ namespace VisualAudio.Services.Metadata
                 Artist = artist,
                 Title = release.Title,
                 AlbumImageFilename = release.Images.FirstOrDefault(i => i.Type == "primary")?.Uri,
+                RelatedVideos = release.Videos.Select(v => new RelatedVideos()
+                {
+                    Description = v.Description,
+                    Duration = v.Duration,
+                    Title = v.Title,
+                    Uri = v.Uri
+                }).ToList(),
                 Songs = release.Tracklist
                     .OrderBy(t => ParseTrackPosition(t.Position).side)
                     .ThenBy(t => ParseTrackPosition(t.Position).track)

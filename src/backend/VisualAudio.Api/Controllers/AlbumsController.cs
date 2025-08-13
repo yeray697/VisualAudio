@@ -1,15 +1,16 @@
-// VisualAudio.Api/Controllers/AlbumsController.cs
 using Microsoft.AspNetCore.Mvc;
 
 using VisualAudio.Services.Albums;
 using VisualAudio.Services.Albums.Models;
 using VisualAudio.Services.Metadata;
+using VisualAudio.Services.Video;
+using VisualAudio.Services.Video.Models;
 
 namespace VisualAudio.Api.Controllers
 {
     [ApiController]
     [Route("api/albums")]
-    public class AlbumsController(IAlbumsService albumService, IMetadataService metadataService) : ControllerBase
+    public class AlbumsController(IAlbumsService albumService, IMetadataService metadataService, IVideoDownloaderService videoDownloaderService) : ControllerBase
     {
 
         [HttpGet]
@@ -100,6 +101,16 @@ namespace VisualAudio.Api.Controllers
                 return NotFound(new { message = "No release found" });
 
             return Ok(release);
+        }
+
+        [HttpPut("downloadVideo")]
+        public async Task<IActionResult> DownloadVideoAsync([FromBody] VideoRequestDto request)
+        {
+            var resultFilename = await videoDownloaderService.DownloadVideo(request);
+            if (resultFilename == null)
+                return BadRequest();
+            await albumService.UpdateVideoSongAsync(request.AlbumId, request.SongId, resultFilename);
+            return Ok();
         }
 
         private async Task<Stream?> DownloadFileAsync(string url)

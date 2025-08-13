@@ -1,8 +1,8 @@
-namespace VisualAudio.Services.Albums.Models
+﻿namespace VisualAudio.Services.Albums.Models
 {
 
     public enum MetadataFileType
     {
-        AlbumImage, SongImage, Song, SongLyrics
+        AlbumImage, SongImage, Song, SongLyrics, SongVideo
     }
 }

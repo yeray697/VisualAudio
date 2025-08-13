@@ -1,4 +1,4 @@
-using VisualAudio.Data.Albums.Models;
+﻿using VisualAudio.Data.Albums.Models;
 using VisualAudio.Data.FileStorage;
 
 namespace VisualAudio.Data.Albums
@@ -25,9 +25,11 @@ namespace VisualAudio.Data.Albums
             return await fileStorage.ReadFileAsync(filePath);
         }
 
-        private static string GetStoragePath(AlbumMetadataIdentifier identifier)
+        public string GetStoragePath(AlbumMetadataIdentifier identifier, bool includeBasePath = false)
         {
-            return Path.Combine(albumBasePath, identifier.AlbumId, identifier.SongId ?? string.Empty, identifier.Filename);
+            var path = Path.Combine(albumBasePath, identifier.AlbumId, identifier.SongId ?? string.Empty, identifier.Filename);
+
+            return includeBasePath ? fileStorage.GetPath(path) : path;
         }
     }
 }

@@ -124,6 +124,7 @@ public class DiscogsRelease
     public string Released { get; set; }
     public List<DiscogsImage> Images { get; set; }
     public List<DiscogsTrack> Tracklist { get; set; }
+    public List<DicogsVideos> Videos { get; set; }
 }
 
 public class DiscogsImage
@@ -131,6 +132,14 @@ public class DiscogsImage
     public string Uri { get; set; }
     public string Resource_Url { get; set; }
     public string Type { get; set; }
+}
+
+public class DicogsVideos
+{
+    public string Title { get; set; }
+    public string Description { get; set; }
+    public string Uri { get; set; }
+    public int Duration { get; set; }
 }
 
 public class DiscogsTrack

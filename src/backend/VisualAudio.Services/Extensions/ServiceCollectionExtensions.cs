@@ -6,6 +6,7 @@ using VisualAudio.Services.Fingerprint;
 using VisualAudio.Services.Metadata;
 using VisualAudio.Services.Metadata.Lyrics;
 using VisualAudio.Services.Playing;
+using VisualAudio.Services.Video;
 using VisualAudio.Services.Websocket;
 
 namespace VisualAudio.Services.Extensions
@@ -26,6 +27,7 @@ namespace VisualAudio.Services.Extensions
                 .AddScoped<IMusixMatchService, MusixMatchService>()
                 .AddScoped<ILrcLibLyricsService, LrcLibLyricsService>()
                 .AddScoped<ILyricsService, LyricsService>()
+                .AddScoped<IVideoDownloaderService, VideoDownloaderService>()
                 .AddSingleton<IFingerprintService, FingerprintService>()
                 .AddSingleton<IPlayingService, PlayingService>();
         }

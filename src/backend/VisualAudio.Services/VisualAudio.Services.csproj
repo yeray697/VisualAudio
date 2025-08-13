@@ -11,6 +11,7 @@
     <PackageReference Include="F23.StringSimilarity" Version="6.0.0" />
     <PackageReference Include="SoundFingerprinting" Version="12.2.0" />
     <PackageReference Include="SoundFingerprinting.Emy" Version="12.2.0" />
+    <PackageReference Include="YoutubeDLSharp" Version="1.1.2" />
   </ItemGroup>
 
   <ItemGroup>

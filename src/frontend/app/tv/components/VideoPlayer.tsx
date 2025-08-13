@@ -2,7 +2,10 @@
 
 import { Box } from '@mui/material';
 
-export const VideoPlayer = () => {
+type Props = {
+  videoUrl: string;
+};
+export const VideoPlayer = ({ videoUrl }: Props) => {
   console.log('Render <VideoPlayer>');
 
   return (
@@ -14,7 +17,7 @@ export const VideoPlayer = () => {
       <iframe
         width="100%"
         height="100%"
-        src="https://www.youtube.com/embed/5mGuCdlCcNM?autoplay=1&mute=1"
+        src={videoUrl}
         title="YouTube video"
         frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

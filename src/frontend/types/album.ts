@@ -1,4 +1,4 @@
-import { formatDurationToTime } from "../utils/timeUtils";
+import { formatDurationToTime } from '../utils/timeUtils';
 
 export interface Song {
   id: string;
@@ -10,6 +10,7 @@ export interface Song {
   songImageFilename?: string;
   songLyricsFilename?: string;
   songFilename?: string;
+  songVideoFilename?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -25,22 +26,34 @@ export interface Album {
   updatedAt?: string;
 }
 
+export interface RelatedVideos {
+  title: string;
+  description: string;
+  uri: string;
+  duration: number;
+}
 export interface SongMetadata extends Song {
   lyrics?: string;
 }
 export interface AlbumMetadata extends Album {
-  songs: SongMetadata[]
+  songs: SongMetadata[];
+  relatedVideos: RelatedVideos[];
 }
 
-export type MetadataFileType = "AlbumImage" | "SongImage" | "Song" | "SongLyrics";
-export const albumTypes = ["CD", "LP", "Casette"] as const;
-export type AlbumType = typeof albumTypes[number];
+export type MetadataFileType =
+  | 'AlbumImage'
+  | 'SongImage'
+  | 'Song'
+  | 'SongLyrics'
+  | 'SongVideo';
+export const albumTypes = ['CD', 'LP', 'Casette'] as const;
+export type AlbumType = (typeof albumTypes)[number];
 
 export type FileContent = {
-  content: string,
-  modified: boolean
-}
-export type FileLike = File | string | null; 
+  content: string;
+  modified: boolean;
+};
+export type FileLike = File | string | null;
 
 export interface SongFormDto extends Song {
   songImageFile: FileLike; // replaces songImageFilename
@@ -48,11 +61,29 @@ export interface SongFormDto extends Song {
   songLyricsFileContent: FileContent | null; // replaces songLyricsFilename
   durationMinutes: number;
   durationSeconds: number;
+  video?: VideoRequestFormDto;
+}
+
+export interface VideoSegmentDto {
+  start: number;
+  end: number;
+}
+
+export interface VideoRequestFormDto {
+  videoUrl: string;
+  segments: VideoSegmentDto[];
+  maxQuality: string;
+}
+
+export interface VideoRequestDto extends VideoRequestFormDto {
+  songId: string;
+  albumId: string;
 }
 
 export interface AlbumFormDto extends Album {
   albumImageFile: FileLike; // replaces albumImageFilename
   songs: SongFormDto[];
+  relatedVideos: RelatedVideos[];
 }
 
 export function mapAlbumToForm(album: Album): AlbumFormDto {
@@ -60,6 +91,7 @@ export function mapAlbumToForm(album: Album): AlbumFormDto {
     ...album,
     albumImageFile: album.albumImageFilename ?? null,
     songs: mapSongsForm(album.songs),
+    relatedVideos: [],
   };
 }
 export function mapSongsForm(songs: SongMetadata[]): SongFormDto[] {
@@ -71,7 +103,9 @@ export function mapSongsForm(songs: SongMetadata[]): SongFormDto[] {
       durationSeconds: seconds,
       songImageFile: song.songImageFilename ?? null,
       songAudioFile: song.songFilename ?? null,
-      songLyricsFileContent: song.lyrics ? { content: song.lyrics, modified: true } : null,
-    }})
-    
+      songLyricsFileContent: song.lyrics
+        ? { content: song.lyrics, modified: true }
+        : null,
+    };
+  });
 }

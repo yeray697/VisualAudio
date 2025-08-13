@@ -57,8 +57,17 @@ export const Player = () => {
     setImageUrl(nowPlayingImageUrl);
   }, [nowPlaying, config.apiUrl, setImageUrl]);
 
+  const videoUrl =
+    (nowPlaying?.nowPlaying.songVideoFilename
+      ? getAlbumFileUrl(
+          config.apiUrl,
+          nowPlaying.nowPlaying.songVideoFilename,
+          nowPlaying.album.id,
+          nowPlaying.nowPlaying.id
+        )
+      : null) ?? 'https://www.youtube.com/embed/5mGuCdlCcNM?autoplay=1&mute=1';
   const hasLyrics = !!lyrics;
-  const hasVideo = (nowPlaying?.nowPlaying.position ?? 2) % 2; // TODO: toggle this
+  const hasVideo = (nowPlaying?.nowPlaying.position ?? 2) + (1 % 2); // TODO: toggle this
 
   // Calcualte side panel sizes
   const layouts = {
@@ -148,7 +157,7 @@ export const Player = () => {
                   boxShadow: 3,
                 }}
               >
-                <VideoPlayer />
+                <VideoPlayer videoUrl={videoUrl} />
               </MotionBox>
             ) : hasLyrics ? (
               <MotionBox
