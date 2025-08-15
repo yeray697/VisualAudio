@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\VisualAudio.Jobs\VisualAudio.Jobs.csproj" />
     <ProjectReference Include="..\VisualAudio.Services\VisualAudio.Services.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 using VisualAudio.Data.Extensions;
 using VisualAudio.Services.Albums;
@@ -27,7 +27,7 @@ namespace VisualAudio.Services.Extensions
                 .AddScoped<IMusixMatchService, MusixMatchService>()
                 .AddScoped<ILrcLibLyricsService, LrcLibLyricsService>()
                 .AddScoped<ILyricsService, LyricsService>()
-                .AddScoped<IVideoDownloaderService, VideoDownloaderService>()
+                .AddSingleton<IVideoDownloaderService, VideoDownloaderService>()
                 .AddSingleton<IFingerprintService, FingerprintService>()
                 .AddSingleton<IPlayingService, PlayingService>();
         }

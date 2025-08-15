@@ -1,0 +1,20 @@
+[
+  {
+    "Id": "58f360bc-9266-4c6e-8a60-d94d838ead77",
+    "Type": "VisualAudio.Jobs.Handlers.VideoJobPayload, VisualAudio.Jobs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "PayloadJson": "{\u0022VideoUrl\u0022:\u0022https://www.youtube.com/watch?v=yG96RttfZtM\u0022,\u0022Segments\u0022:[{\u0022Start\u0022:10,\u0022End\u0022:20}],\u0022AlbumId\u0022:\u0022a\u0022,\u0022SongId\u0022:\u0022b\u0022,\u0022MaxQuality\u0022:\u00222160\u0022}",
+    "Status": 3,
+    "ErrorMessage": "Object of type \u0027VisualAudio.Jobs.Job\u0027 cannot be converted to type \u0027VisualAudio.Jobs.Handlers.VideoJobPayload\u0027.",
+    "CreatedAt": "2025-08-15T08:58:05.8540831Z",
+    "UpdatedAt": "2025-08-15T08:58:08.9765393Z"
+  },
+  {
+    "Id": "a02d44b6-9bf8-4012-880d-03c2e3316795",
+    "Type": "VisualAudio.Jobs.Handlers.VideoJobPayload, VisualAudio.Jobs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "PayloadJson": "{\u0022VideoUrl\u0022:\u0022https://www.youtube.com/watch?v=yG96RttfZtM\u0022,\u0022Segments\u0022:[{\u0022Start\u0022:10,\u0022End\u0022:20}],\u0022AlbumId\u0022:\u0022a\u0022,\u0022SongId\u0022:\u0022b\u0022,\u0022MaxQuality\u0022:\u00222160\u0022}",
+    "Status": 3,
+    "ErrorMessage": "An error occurred when processing job a02d44b6-9bf8-4012-880d-03c2e3316795",
+    "CreatedAt": "2025-08-15T08:58:46.6716218Z",
+    "UpdatedAt": "2025-08-15T09:04:13.6123813Z"
+  }
+]
