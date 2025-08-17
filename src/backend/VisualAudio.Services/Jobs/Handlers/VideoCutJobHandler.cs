@@ -1,12 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-
-using VisualAudio.Data.Albums;
-using VisualAudio.Data.Albums.Models;
-using VisualAudio.Services.Albums;
+﻿using VisualAudio.Data.Albums;
 using VisualAudio.Services.Video;
 using VisualAudio.Services.Video.Models;
 
-namespace VisualAudio.Jobs.Handlers
+namespace VisualAudio.Services.Jobs.Handlers
 {
     public class VideoJobPayload
     {
@@ -53,7 +49,7 @@ namespace VisualAudio.Jobs.Handlers
                 {
                     JobId = jobId,
                     MaxQuality = payload.MaxQuality,
-                    Segments = [.. payload.Segments.Select(s => new Video.VideoSegment() { End = s.End, Start = s.Start })],
+                    Segments = [.. payload.Segments.Select(s => new Data.Albums.Models.Video.VideoSegment() { End = s.End, Start = s.Start })],
                     VideoUrl = payload.VideoUrl
                 };
                 song.SongVideo.Filename = resultFilename;

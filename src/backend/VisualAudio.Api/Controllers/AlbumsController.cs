@@ -1,16 +1,15 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 using VisualAudio.Services.Albums;
 using VisualAudio.Services.Albums.Models;
 using VisualAudio.Services.Metadata;
-using VisualAudio.Services.Video;
 using VisualAudio.Services.Video.Models;
 
 namespace VisualAudio.Api.Controllers
 {
     [ApiController]
     [Route("api/albums")]
-    public class AlbumsController(IAlbumsService albumService, IMetadataService metadataService, IVideoDownloaderService videoDownloaderService) : ControllerBase
+    public class AlbumsController(IAlbumsService albumService, IMetadataService metadataService, IMediaAttachmentService mediaAttachmentService) : ControllerBase
     {
 
         [HttpGet]
@@ -54,7 +53,24 @@ namespace VisualAudio.Api.Controllers
         [HttpDelete("{albumId}/file/{fileType}")]
         public async Task<IActionResult> Delete(string albumId, MetadataFileType fileType, [FromQuery] string? songId = null)
         {
-            await albumService.DeleteMetadataFileAsync(fileType, albumId, songId);
+            switch (fileType)
+            {
+                case MetadataFileType.AlbumImage:
+                case MetadataFileType.SongImage:
+                    await mediaAttachmentService.DeleteImage(albumId, songId);
+                    break;
+                case MetadataFileType.Song:
+                    await mediaAttachmentService.DeleteSongAsync(albumId, songId!);
+                    break;
+                case MetadataFileType.SongLyrics:
+                    await mediaAttachmentService.DeleteLyricsAsync(albumId, songId!);
+                    break;
+                case MetadataFileType.SongVideo:
+                    await mediaAttachmentService.DeleteVideoAsync(albumId, songId!);
+                    break;
+                default:
+                    break;
+            }
             return NoContent();
         }
 
@@ -82,16 +98,34 @@ namespace VisualAudio.Api.Controllers
                     extension = ".jpg"; // fallback
 
             }
-            await albumService.UpsertMetadataFileAsync(fileType, extension, stream, albumId, songId);
+
+            switch (fileType)
+            {
+                case MetadataFileType.AlbumImage:
+                case MetadataFileType.SongImage:
+                    await mediaAttachmentService.UploadImage(albumId, songId, extension, stream);
+                    break;
+                //case MetadataFileType.Song:
+                //    await mediaAttachmentService.DeleteSongAsync(albumId, songId!);
+                //    break;
+                //case MetadataFileType.SongLyrics:
+                //    await mediaAttachmentService.DeleteLyricsAsync(albumId, songId!);
+                //    break;
+                //case MetadataFileType.SongVideo:
+                //    await mediaAttachmentService.DeleteVideoAsync(albumId, songId!);
+                //    break;
+                default:
+                    break;
+            }
             return Ok();
         }
 
-        [HttpGet("{albumId}/file/{fileType}")]
-        public async Task<IActionResult> Get(string albumId, MetadataFileType fileType, [FromQuery] string? songId = null)
-        {
-            var result = await albumService.GetMetadataFileAsync(fileType, albumId, songId);
-            return Ok(result);
-        }
+        //[HttpGet("{albumId}/file/{fileType}")]
+        //public async Task<IActionResult> Get(string albumId, MetadataFileType fileType, [FromQuery] string? songId = null)
+        //{
+        //    var result = await albumService.GetMetadataFileAsync(fileType, albumId, songId);
+        //    return Ok(result);
+        //}
 
         [HttpGet("lookup/{artist}/{album}")]
         public async Task<IActionResult> LookupAlbum(string artist, string album)
@@ -101,16 +135,6 @@ namespace VisualAudio.Api.Controllers
                 return NotFound(new { message = "No release found" });
 
             return Ok(release);
-        }
-
-        [HttpPut("downloadVideo")]
-        public async Task<IActionResult> DownloadVideoAsync([FromBody] VideoRequestDto request)
-        {
-            var resultFilename = await videoDownloaderService.DownloadVideo(request);
-            if (resultFilename == null)
-                return BadRequest();
-            await albumService.UpdateVideoSongAsync(request.AlbumId, request.SongId, resultFilename);
-            return Ok();
         }
 
         private async Task<Stream?> DownloadFileAsync(string url)

@@ -1,11 +1,10 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 using VisualAudio.Services.Albums;
 using VisualAudio.Services.Fingerprint;
-using VisualAudio.Services.Playing;
-using VisualAudio.Services.Websocket.Models;
+using VisualAudio.Services.Playing.Models;
 
-namespace VisualAudio.Services.Websocket;
+namespace VisualAudio.Services.Playing;
 
 public class PlayingService(IFingerprintService fingerprintService, IAlbumsService albumsService) : IPlayingService
 {
@@ -14,7 +13,7 @@ public class PlayingService(IFingerprintService fingerprintService, IAlbumsServi
     public async Task<PlayingDto?> DetectNowPlayingAsync(Stream audioFile)
     {
 
-        Stopwatch stopwatch = new Stopwatch();
+        var stopwatch = new Stopwatch();
         stopwatch.Start();
 
         string? tmpPath = null;
@@ -29,7 +28,7 @@ public class PlayingService(IFingerprintService fingerprintService, IAlbumsServi
             return await ProcessFingerprintResultAsync(result, stopwatch);
 
         }
-        catch (System.Exception)
+        catch (Exception)
         {
 
             throw;
@@ -46,8 +45,8 @@ public class PlayingService(IFingerprintService fingerprintService, IAlbumsServi
 
     private async Task<PlayingDto?> ProcessFingerprintResultAsync(DetectionResult? detectionResult, Stopwatch stopwatch)
     {
-        string albumId = string.Empty;
-        string songId = string.Empty;
+        var albumId = string.Empty;
+        var songId = string.Empty;
         var metadata = detectionResult?.Match?.Audio?.Track.MetaFields;
         var trackMatchStart = detectionResult?.Match.Audio?.Coverage.TrackMatchStartsAt ?? 0;
         var queryMatchStart = detectionResult?.Match.Audio?.Coverage.QueryMatchStartsAt ?? 0;
@@ -75,7 +74,7 @@ public class PlayingService(IFingerprintService fingerprintService, IAlbumsServi
         stopwatch.Stop();
         var fingerprintLatency = stopwatch.Elapsed;
 
-        var position = (int)Math.Ceiling(trackMatchStart + recordedDuration - queryMatchStart + (fingerprintLatency.Microseconds / 1000.00));
+        var position = (int)Math.Ceiling(trackMatchStart + recordedDuration - queryMatchStart + fingerprintLatency.Microseconds / 1000.00);
         nowPlaying = new PlayingDto()
         {
             Album = album,

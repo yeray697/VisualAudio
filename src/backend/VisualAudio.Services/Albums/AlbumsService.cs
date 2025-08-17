@@ -1,11 +1,11 @@
-﻿using VisualAudio.Services.Albums.Models;
-using VisualAudio.Data.Albums;
+﻿using VisualAudio.Data.Albums;
 using VisualAudio.Data.Albums.Models;
+using VisualAudio.Services.Albums.Models;
 using VisualAudio.Services.Fingerprint;
 
 namespace VisualAudio.Services.Albums
 {
-    public class AlbumsService(IFingerprintService fingerprintService, IAlbumRepository albumRepository, IAlbumMetadataRepository albumMetadataRepository) : IAlbumsService
+    public class AlbumsService(IFingerprintService fingerprintService, IAlbumRepository albumRepository) : IAlbumsService
     {
         public async Task CreateAlbumAsync(AlbumDto album)
         {
@@ -61,115 +61,12 @@ namespace VisualAudio.Services.Albums
         public async Task DeleteAlbumAsync(string id)
         {
             var album = await GetAlbumAsync(id);
-            var fingerPrints = album?.Songs.Where(s => !string.IsNullOrEmpty(s.FingerprintId)).Select(s => s.FingerprintId!) ?? [];
+            var fingerPrints = album?.Songs.Where(s => !string.IsNullOrEmpty(s.SongFingerprint?.FingerprintId)).Select(s => s.SongFingerprint?.FingerprintId!) ?? [];
             foreach (var fingerprintId in fingerPrints)
             {
                 fingerprintService.DeleteTrack(fingerprintId);
             }
             await albumRepository.DeleteAlbumAsync(id); //This already delete metadata files
-        }
-
-        public async Task DeleteMetadataFileAsync(MetadataFileType fileType, string albumId, string? songId = null)
-        {
-            var album = await albumRepository.GetAlbumAsync(albumId);
-            string? filename = null;
-            if (fileType == MetadataFileType.AlbumImage)
-            {
-                filename = album.AlbumImageFilename;
-                album.AlbumImageFilename = null;
-            }
-            else
-            {
-                var song = album.Songs.First(s => s.Id == songId);
-                if (fileType == MetadataFileType.Song)
-                {
-                    filename = song.SongFilename;
-                    song.SongFilename = null;
-                }
-                else if (fileType == MetadataFileType.SongImage)
-                {
-                    filename = song.SongImageFilename;
-                    song.SongImageFilename = null;
-                }
-                else if (fileType == MetadataFileType.SongLyrics)
-                {
-                    filename = song.SongLyricsFilename;
-                    song.SongLyricsFilename = null;
-                }
-                else if (fileType == MetadataFileType.SongVideo)
-                {
-                    filename = song.SongVideoFilename;
-                    song.SongVideoFilename = null;
-                }
-            }
-            if (!string.IsNullOrEmpty(filename))
-            {
-                var identifier = GetAlbumMetadataIdentifier(filename, albumId, songId);
-                await albumMetadataRepository.DeleteFileForAlbumAsync(identifier);
-                await albumRepository.UpdateAlbumAsync(albumId, album);
-            }
-        }
-        public async Task UpdateVideoSongAsync(string albumId, string songId, string filename)
-        {
-            var album = await albumRepository.GetAlbumAsync(albumId);
-
-            var song = album.Songs.First(s => s.Id == songId);
-            song.SongVideoFilename = filename;
-
-            await albumRepository.UpdateAlbumAsync(albumId, album);
-
-        }
-
-        public async Task UpsertMetadataFileAsync(MetadataFileType fileType, string fileExtension, Stream content, string albumId, string? songId = null)
-        {
-            var filename = GetFilename(fileType, fileExtension);
-            var album = await albumRepository.GetAlbumAsync(albumId);
-            var identifier = GetAlbumMetadataIdentifier(filename, albumId, songId);
-            await albumMetadataRepository.UpsertFileForAlbumAsync(identifier, content);
-            if (fileType == MetadataFileType.AlbumImage)
-            {
-                album.AlbumImageFilename = filename;
-            }
-            else
-            {
-                var song = album.Songs.First(s => s.Id == songId);
-                if (fileType == MetadataFileType.SongImage)
-                    song.SongImageFilename = filename;
-                else if (fileType == MetadataFileType.SongLyrics)
-                    song.SongLyricsFilename = filename;
-                else if (fileType == MetadataFileType.Song)
-                {
-                    song.SongFilename = filename;
-                    var convertedTmpPath = await fingerprintService.ConvertToWavAsync(content);
-                    var fingerPrintId = await fingerprintService.StoreTrack(convertedTmpPath, album.Artist, song.Name, song.Id, album.Title, album.Id);
-                    song.FingerprintId = fingerPrintId;
-                }
-
-            }
-            await albumRepository.UpdateAlbumAsync(albumId, album);
-
-        }
-
-        public async Task<Stream?> GetMetadataFileAsync(MetadataFileType fileType, string albumId, string? songId = null)
-        {
-            var album = await albumRepository.GetAlbumAsync(albumId);
-            string? filename = null;
-            if (fileType == MetadataFileType.AlbumImage)
-                filename = album.AlbumImageFilename;
-            else
-            {
-                var song = album.Songs.First(s => s.Id == songId);
-                if (fileType == MetadataFileType.SongImage)
-                    filename = song.SongImageFilename;
-                else if (fileType == MetadataFileType.Song)
-                    filename = song.SongFilename;
-                else if (fileType == MetadataFileType.SongLyrics)
-                    filename = song.SongLyricsFilename;
-            }
-            if (filename == null)
-                return null;
-            var identifier = GetAlbumMetadataIdentifier(filename, albumId, songId);
-            return await albumMetadataRepository.GetFileForAlbumAsync(identifier);
         }
 
         private static Album MapAlbumFromDto(AlbumDto albumDto)
@@ -192,10 +89,9 @@ namespace VisualAudio.Services.Albums
                     Position = s.Position,
                     UpdatedAt = s.UpdatedAt,
                     SongImageFilename = s.SongImageFilename,
-                    SongFilename = s.SongFilename,
+                    SongFingerprint = MapFingerprintFromDto(s.SongFingerprint),
                     SongLyricsFilename = s.SongLyricsFilename,
-                    SongVideoFilename = s.SongVideoFilename,
-                    FingerprintId = s.FingerprintId
+                    SongVideo = MapVideoFromDto(s.SongVideo),
                 })
             };
         }
@@ -217,13 +113,72 @@ namespace VisualAudio.Services.Albums
                     Id = s.Id,
                     Name = s.Name,
                     SongImageFilename = s.SongImageFilename,
-                    SongFilename = s.SongFilename,
+                    SongFingerprint = MapFingerprintToDto(s.SongFingerprint),
                     SongLyricsFilename = s.SongLyricsFilename,
-                    SongVideoFilename = s.SongVideoFilename,
-                    FingerprintId = s.FingerprintId,
+                    SongVideo = MapVideoToDto(s.SongVideo),
                     Position = s.Position,
                     UpdatedAt = s.UpdatedAt,
                 })
+            };
+        }
+
+        private static VideoDto? MapVideoToDto(Data.Albums.Models.Video? video)
+        {
+            if (video == null)
+                return null;
+            return new()
+            {
+                JobId = video.JobId,
+                Filename = video.Filename,
+                MaxQuality = video.MaxQuality,
+                VideoUrl = video.VideoUrl,
+                Segments = ((video.Segments?.Count ?? 0) == 0) ? [] : [.. video.Segments!.Select(s => new VideoDto.VideoSegmentDto()
+                {
+                    Start = s.Start,
+                    End = s.End
+                })]
+            };
+        }
+
+        private static Data.Albums.Models.Video? MapVideoFromDto(VideoDto? video)
+        {
+            if (video == null)
+                return null;
+            return new()
+            {
+                JobId = video.JobId,
+                Filename = video.Filename,
+                MaxQuality = video.MaxQuality,
+                VideoUrl = video.VideoUrl,
+                Segments = ((video.Segments?.Count ?? 0) == 0) ? [] : [.. video.Segments!.Select(s => new Data.Albums.Models.Video.VideoSegment()
+                {
+                    Start = s.Start,
+                    End = s.End
+                })]
+            };
+        }
+
+        private static SongFingerprintDto? MapFingerprintToDto(SongFingerprint? song)
+        {
+            if (song == null)
+                return null;
+            return new()
+            {
+                Filename = song.Filename,
+                FingerprintId = song.FingerprintId,
+                JobId = song.JobId
+            };
+        }
+
+        private static SongFingerprint? MapFingerprintFromDto(SongFingerprintDto? song)
+        {
+            if (song == null)
+                return null;
+            return new()
+            {
+                Filename = song.Filename,
+                JobId = song.JobId,
+                FingerprintId = song.FingerprintId
             };
         }
 

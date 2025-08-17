@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-using VisualAudio.Jobs;
-using VisualAudio.Jobs.Extensions;
-using VisualAudio.Jobs.Handlers;
+using VisualAudio.Services.Extensions;
+using VisualAudio.Services.Jobs;
+using VisualAudio.Services.Jobs.Handlers;
 
 namespace VisualAudio.Api.Controllers
 {

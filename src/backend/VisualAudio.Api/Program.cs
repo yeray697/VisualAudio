@@ -7,7 +7,6 @@ using System.Text.Json.Serialization;
 using Scalar.AspNetCore;
 
 using VisualAudio.Data.FileStorage;
-using VisualAudio.Jobs.Extensions;
 using VisualAudio.Services.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);

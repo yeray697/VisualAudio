@@ -1,6 +1,6 @@
-using VisualAudio.Services.Albums.Models;
+﻿using VisualAudio.Services.Albums.Models;
 
-namespace VisualAudio.Services.Websocket.Models;
+namespace VisualAudio.Services.Playing.Models;
 
 public class PlayingDto
 {

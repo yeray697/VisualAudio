@@ -1,4 +1,4 @@
-using VisualAudio.Services.Websocket.Models;
+﻿using VisualAudio.Services.Playing.Models;
 
 namespace VisualAudio.Services.Playing;
 

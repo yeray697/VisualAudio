@@ -1,4 +1,4 @@
-namespace VisualAudio.Services.Websocket.Models;
+﻿namespace VisualAudio.Services.Playing.Models;
 
 public enum MessageType
 {

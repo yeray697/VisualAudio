@@ -1,4 +1,4 @@
-namespace VisualAudio.Services.Albums.Models
+﻿namespace VisualAudio.Services.Albums.Models
 {
     public class SongDto
     {
@@ -7,12 +7,32 @@ namespace VisualAudio.Services.Albums.Models
         public string? Artist { get; set; }
         public int Position { get; set; }
         public int Duration { get; set; }
-        public string? FingerprintId { get; set; }
-        public string? SongFilename { get; set; }
+        public SongFingerprintDto? SongFingerprint { get; set; }
         public string? SongImageFilename { get; set; }
         public string? SongLyricsFilename { get; set; }
-        public string? SongVideoFilename { get; set; }
+        public VideoDto? SongVideo { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    public class VideoDto
+    {
+        public string JobId { get; set; }
+        public string Filename { get; set; }
+        public string VideoUrl { get; set; }
+        public List<VideoSegmentDto> Segments { get; set; } = [];
+        public string MaxQuality { get; set; } = "2160";
+
+        public class VideoSegmentDto
+        {
+            public double Start { get; set; }
+            public double End { get; set; }
+        }
+    }
+    public class SongFingerprintDto
+    {
+        public string JobId { get; set; }
+        public string Filename { get; set; }
+        public string FingerprintId { get; set; }
     }
 }
