@@ -198,8 +198,8 @@ export default function AlbumFormSongItem({ index }: Props) {
                     >
                       <FingerprintIcon
                         color={
-                          typeof song.songAudioFile === 'string' // If audio is already stored
-                            ? song.fingerprintId
+                          song.songFingerprint?.filename
+                            ? song.songFingerprint.fingerprintId
                               ? 'success'
                               : 'error'
                             : 'disabled'
@@ -264,14 +264,22 @@ export default function AlbumFormSongItem({ index }: Props) {
                 >
                   <Grid size={{ xs: 6 }}>
                     <AudioSelector
-                      value={song.songAudioFile}
+                      value={song.songFingerprint?.file?.content}
                       albumId={albumId}
                       songId={song.id}
                       height={audioSelectorHeight}
                       border={audioSelectorBorder}
                       padding={audioSelectorPadding}
                       onChange={file =>
-                        updateSong(song.id, { songAudioFile: file })
+                        updateSong(song.id, {
+                          songFingerprint: {
+                            ...(song.songFingerprint ?? {}),
+                            file: {
+                              content: file,
+                              modified: true,
+                            },
+                          },
+                        })
                       }
                     />
                   </Grid>
@@ -318,7 +326,7 @@ export default function AlbumFormSongItem({ index }: Props) {
         albumId={albumId}
         songId={song.id}
         songDuration={song.duration}
-        existingVideo={song.songVideoFilename}
+        existingVideo={song.songVideo}
         open={!!openVideoEditorDialog}
       />
     </>

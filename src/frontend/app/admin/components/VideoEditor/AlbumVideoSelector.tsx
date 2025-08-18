@@ -10,7 +10,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { RelatedVideos } from '../../../../types/album';
 import AlbumVideoEditor from './AlbumVideoEditor';
 import useAlbumAdminStore from '../../../../store/adminAlbumForm';
 import { useShallow } from 'zustand/shallow';
@@ -18,9 +17,10 @@ import { useState } from 'react';
 import { formatDurationToTimeString } from '../../../../utils/timeUtils';
 import { getAlbumFileUrl } from '../../../../utils/albumFileUtils';
 import { useConfig } from '../../../providers/ConfigProvider';
+import { VideoContent } from '../../../../types/album-form';
 
 interface Props {
-  existingVideo?: string;
+  existingVideo?: VideoContent;
   albumId: string;
   songId: string;
   songDuration: number;
@@ -42,7 +42,7 @@ export default function AlbumVideoSelector({
   );
   const { updateSong } = useAlbumAdminStore();
   const handleCancel = () => {
-    updateSong(songId, { video: undefined });
+    updateSong(songId, { songVideo: undefined });
     onClose();
   };
 

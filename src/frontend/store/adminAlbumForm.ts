@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AlbumFormDto, SongFormDto } from '../types/album';
+import { AlbumFormDto, SongFormDto } from '../types/album-form';
 
 type AlbumStoreActions = {
   setAlbum: (nextAlbum: Partial<AlbumFormDto>) => void;

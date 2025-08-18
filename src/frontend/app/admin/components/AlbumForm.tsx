@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  Album,
-  albumTypes,
-  mapAlbumToForm,
-  mapSongsForm,
-  VideoRequestDto,
-} from '../../../types/album';
+import { Album, albumTypes } from '../../../types/album';
 import { useEffect, useState } from 'react';
 import {
   DialogTitle,
@@ -35,6 +29,7 @@ import {
 } from '../../hooks/useAlbumMutations';
 import { useSearchMetadata } from '../../hooks/useAlbums';
 import useAlbumAdminStore from '../../../store/adminAlbumForm';
+import { mapAlbumToForm, mapSongsForm } from '../../../types/album-form';
 
 interface Props {
   album?: Album | null;
@@ -114,7 +109,7 @@ export default function AlbumForm({ album, onClose }: Props) {
   }, [metadata]);
 
   const getFilesActions = () => {
-    const downloadVideos: Array<VideoRequestDto> = [];
+    // const downloadVideos: Array<VideoRequestDto> = [];
     const uploadFiles: Array<UploadFileEntry> = [];
     const deleteFiles: Array<DeleteFileEntry> = [];
 
@@ -134,12 +129,12 @@ export default function AlbumForm({ album, onClose }: Props) {
           fileType: 'SongImage',
           songId: song.id,
         });
-      } else if (song.video) {
-        downloadVideos.push({ ...song.video, albumId: id, songId: song.id });
+      } else if (song.songVideo) {
+        // downloadVideos.push({ ...song.video, albumId: id, songId: song.id });
       } else if (!song.songImageFile && song.songImageFilename) {
         deleteFiles.push({ fileType: 'SongImage', songId: song.id });
-      } else if (!song.video && song.songVideoFilename) {
-        deleteFiles.push({ fileType: 'SongVideo', songId: song.id });
+        // } else if (!song.video && song.songVideoFilename) {
+        //   deleteFiles.push({ fileType: 'SongVideo', songId: song.id });
       }
 
       if (
@@ -165,18 +160,18 @@ export default function AlbumForm({ album, onClose }: Props) {
         deleteFiles.push({ fileType: 'SongLyrics', songId: song.id });
       }
 
-      if (song.songAudioFile instanceof File) {
-        uploadFiles.push({
-          file: song.songAudioFile,
-          fileType: 'Song',
-          songId: song.id,
-        });
-      } else if (!song.songAudioFile && song.songFilename) {
-        deleteFiles.push({ fileType: 'Song', songId: song.id });
-      }
+      // if (song.songAudioFile instanceof File) {
+      //   uploadFiles.push({
+      //     file: song.songAudioFile,
+      //     fileType: 'Song',
+      //     songId: song.id,
+      //   });
+      // } else if (!song.songAudioFile && song.songFilename) {
+      //   deleteFiles.push({ fileType: 'Song', songId: song.id });
+      // }
     });
 
-    return { uploadFiles, deleteFiles, downloadVideos };
+    return { uploadFiles, deleteFiles, downloadVideos: [] }; //todo
   };
 
   const saveAlbum = async () => {

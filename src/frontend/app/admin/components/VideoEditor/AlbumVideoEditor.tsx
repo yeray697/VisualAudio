@@ -12,7 +12,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
 import DeleteIcon from '@mui/icons-material/Delete';
 import useAlbumAdminStore from '../../../../store/adminAlbumForm';
-import { VideoSegmentDto } from '../../../../types/album';
+import { VideoSegment } from '../../../../types/album';
 import { useShallow } from 'zustand/shallow';
 
 interface Props {
@@ -27,7 +27,7 @@ export default function AlbumVideoEditor({ videoUrl, songId }: Props) {
   const songDuration = song.duration;
   const playerRef = useRef<HTMLVideoElement | null>(null);
   const [quality, setQuality] = useState(song.video?.maxQuality ?? '2160');
-  const [segments, setSegments] = useState<VideoSegmentDto[]>(
+  const [segments, setSegments] = useState<VideoSegment[]>(
     song.video?.segments ?? [{ start: 0, end: songDuration }]
   );
   const updateSong = useAlbumAdminStore(state => state.updateSong);

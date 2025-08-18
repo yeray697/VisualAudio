@@ -10,12 +10,12 @@ import {
 import useAlbumAdminStore from '../../../store/adminAlbumForm';
 import { useGetAlbumFile } from '../../hooks/useAlbumMutations';
 import Editor from 'react-simple-code-editor';
-import { FileContent } from '../../../types/album';
+import { FileLike } from '../../../types/album-form';
 
 interface Props {
   open: boolean;
   songId: string;
-  existingLyrics: string | undefined;
+  existingLyrics?: FileLike;
   onClose: () => void;
 }
 
@@ -26,38 +26,47 @@ const highlightText = (code: string) => {
   return code
     .replace(
       timestampRegex,
-      (match) => `<span style="color:#4FC3F7; font-weight:bold">${match}</span>`
+      match => `<span style="color:#4FC3F7; font-weight:bold">${match}</span>`
     )
     .replace(
       commentRegex,
-      (match) => `<span style="color:#9E9E9E; font-style:italic">${match}</span>`
+      match => `<span style="color:#9E9E9E; font-style:italic">${match}</span>`
     );
 };
 
-export const LyricsEditorDialog = ({ songId, existingLyrics, open, onClose }: Props) => {
+export const LyricsEditorDialog = ({
+  songId,
+  existingLyrics,
+  open,
+  onClose,
+}: Props) => {
   const { id: albumId, updateSong } = useAlbumAdminStore();
-  const { data: lyricsData } = useGetAlbumFile(albumId, "SongLyrics", songId, open && !!albumId && !!songId && !existingLyrics);
+  const { data: lyricsData } = useGetAlbumFile(
+    albumId,
+    'SongLyrics',
+    songId,
+    open && !!albumId && !!songId && !existingLyrics
+  );
 
-  const [text, setText] = useState("");
-  const [originalText, setOriginalText] = useState("");
+  const [text, setText] = useState('');
+  const [originalText, setOriginalText] = useState('');
 
   useEffect(() => {
     if (open && (lyricsData || existingLyrics)) {
       if (lyricsData) {
-        lyricsData.text().then((txt) => {
+        lyricsData.text().then(txt => {
           setText(txt);
           setOriginalText(txt);
         });
-      }
-      else {
-        setText(existingLyrics!);
-        setOriginalText(existingLyrics!);
+      } else {
+        setText(existingLyrics as string);
+        setOriginalText(existingLyrics as string);
       }
     }
   }, [open, existingLyrics, lyricsData]);
 
   const handleInput = (text: string) => {
-    setText(text || "");
+    setText(text || '');
   };
 
   const handleSave = () => {
@@ -71,14 +80,15 @@ export const LyricsEditorDialog = ({ songId, existingLyrics, open, onClose }: Pr
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Edit lyrics</DialogTitle>
       <DialogContent>
-
-        <Box style={{
-          background: "#1e1e1e",
-          borderRadius: 8,
-          padding: 8,
-          fontSize: 14,
-          color: "#d4d4d4",
-        }}>
+        <Box
+          style={{
+            background: '#1e1e1e',
+            borderRadius: 8,
+            padding: 8,
+            fontSize: 14,
+            color: '#d4d4d4',
+          }}
+        >
           <Editor
             value={text}
             onValueChange={handleInput}
@@ -86,16 +96,21 @@ export const LyricsEditorDialog = ({ songId, existingLyrics, open, onClose }: Pr
             padding={10}
             style={{
               minHeight: 300,
-              outline: "none",
-              whiteSpace: "pre-wrap",
-              fontFamily: '"Fira Code", monospace'
+              outline: 'none',
+              whiteSpace: 'pre-wrap',
+              fontFamily: '"Fira Code", monospace',
             }}
           />
         </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained" color="primary" disabled={text === originalText}>
+        <Button
+          onClick={handleSave}
+          variant="contained"
+          color="primary"
+          disabled={text === originalText}
+        >
           Save
         </Button>
       </DialogActions>
