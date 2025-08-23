@@ -29,7 +29,7 @@ RUN apt update && \
         tzdata \
         ca-certificates \
         curl \
-        python3 \
+        python3 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .
