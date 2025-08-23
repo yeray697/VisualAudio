@@ -6,6 +6,7 @@ COPY src/backend/VisualAudio.sln ./
 COPY src/backend/VisualAudio.Api/VisualAudio.Api.csproj VisualAudio.Api/
 COPY src/backend/VisualAudio.Contracts/VisualAudio.Contracts.csproj VisualAudio.Contracts/
 COPY src/backend/VisualAudio.Data/VisualAudio.Data.csproj VisualAudio.Data/
+COPY src/backend/VisualAudio.Jobs/VisualAudio.Jobs.csproj VisualAudio.Jobs/
 COPY src/backend/VisualAudio.Services/VisualAudio.Services.csproj VisualAudio.Services/
 
 RUN dotnet restore VisualAudio.sln
