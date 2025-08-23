@@ -89,6 +89,7 @@ namespace VisualAudio.Services.Albums
         {
             var isAlbumFile = string.IsNullOrWhiteSpace(songId);
             var filename =  isAlbumFile ? "album-cover" : "song-cover";
+            filename += $"{fileExtension}";
             var identifier = GetAlbumMetadataIdentifier(filename, albumId, songId);
 
             var album = await albumRepository.GetAlbumAsync(albumId);
@@ -103,6 +104,19 @@ namespace VisualAudio.Services.Albums
                 var song = album.Songs.First(s => s.Id == songId);
                 song.SongImageFilename = filename;
             }
+            await albumRepository.UpdateAlbumAsync(albumId, album);
+        }
+
+        public async Task UploadLyrics(string albumId, string songId, Stream content)
+        {
+            var filename =  "song-lyrics.txt";
+            var identifier = GetAlbumMetadataIdentifier(filename, albumId, songId);
+
+            var album = await albumRepository.GetAlbumAsync(albumId);
+            var song = album.Songs.First(s => s.Id == songId);
+            await albumMetadataRepository.UpsertFileForAlbumAsync(identifier, content);
+
+            song.SongLyricsFilename = filename;
             await albumRepository.UpdateAlbumAsync(albumId, album);
         }
 

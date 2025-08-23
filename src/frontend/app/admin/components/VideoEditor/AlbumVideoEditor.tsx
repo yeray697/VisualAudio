@@ -26,9 +26,9 @@ export default function AlbumVideoEditor({ videoUrl, songId }: Props) {
   );
   const songDuration = song.duration;
   const playerRef = useRef<HTMLVideoElement | null>(null);
-  const [quality, setQuality] = useState(song.video?.maxQuality ?? '2160');
+  const [quality, setQuality] = useState(song.songVideo?.maxQuality ?? '2160');
   const [segments, setSegments] = useState<VideoSegment[]>(
-    song.video?.segments ?? [{ start: 0, end: songDuration }]
+    song.songVideo?.segments ?? [{ start: 0, end: songDuration }]
   );
   const updateSong = useAlbumAdminStore(state => state.updateSong);
   const initialState = {
@@ -147,7 +147,12 @@ export default function AlbumVideoEditor({ videoUrl, songId }: Props) {
 
   useEffect(() => {
     updateSong(songId, {
-      video: { maxQuality: quality, videoUrl: videoUrl!, segments },
+      songVideo: {
+        ...(song.songVideo ?? {}),
+        maxQuality: quality,
+        videoUrl: videoUrl!,
+        segments,
+      },
     });
   }, [segments, videoUrl, quality]);
 

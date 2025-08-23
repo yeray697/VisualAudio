@@ -1,7 +1,6 @@
-// hooks/useAlbumMutations.ts
 'use client';
 
-import { Album, MetadataFileType, VideoRequestDto } from '../../types/album';
+import { Album, MetadataFileType } from '../../types/album';
 import { useApi } from './useApi';
 
 export function useCreateOrUpdateAlbum(initialAlbum: Album, autoFetch = false) {
@@ -88,33 +87,14 @@ export function useDeleteAlbumFiles(autoFetch = false) {
   return { ...api, fetch };
 }
 
-export function useUpdateVideo(autoFetch = false) {
-  const api = useApi<void>({ endpoint: '', method: 'DELETE', autoFetch });
-
-  const fetch = async (requests: VideoRequestDto[]) => {
-    for (const rq of requests) {
-      console.log(
-        `Downloading video ${rq.videoUrl}. Album ${rq.albumId}. SongId ${rq.songId}`
-      );
-      await api.fetch({
-        endpoint: `/api/albums/downloadVideo`,
-        method: 'PUT',
-        body: rq,
-      });
-    }
-  };
-
-  return { ...api, fetch };
-}
 export function useGetAlbumFile(
+  filename: string | undefined,
   albumId: string,
-  filetype: MetadataFileType,
   songId?: string,
   autoFetch = true
 ) {
-  const query = songId ? `?songId=${encodeURIComponent(songId)}` : '';
   return useApi<Blob>({
-    endpoint: `/api/albums/${albumId}/file/${filetype}${query}`,
+    endpoint: `/albums/${albumId}/${songId ? songId + '/' : ''}/${filename}`,
     method: 'GET',
     autoFetch,
     mapFn: res => res as Blob,

@@ -108,9 +108,9 @@ namespace VisualAudio.Api.Controllers
                 //case MetadataFileType.Song:
                 //    await mediaAttachmentService.DeleteSongAsync(albumId, songId!);
                 //    break;
-                //case MetadataFileType.SongLyrics:
-                //    await mediaAttachmentService.DeleteLyricsAsync(albumId, songId!);
-                //    break;
+                case MetadataFileType.SongLyrics:
+                    await mediaAttachmentService.UploadLyrics(albumId, songId, stream);
+                    break;
                 //case MetadataFileType.SongVideo:
                 //    await mediaAttachmentService.DeleteVideoAsync(albumId, songId!);
                 //    break;

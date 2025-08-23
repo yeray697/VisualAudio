@@ -1,10 +1,7 @@
-﻿using VisualAudio.Data.Albums;
-using VisualAudio.Data.Albums.Models;
-using VisualAudio.Services.Albums;
+﻿using Microsoft.AspNetCore.Http;
+
+using VisualAudio.Data.Albums;
 using VisualAudio.Services.Fingerprint;
-using VisualAudio.Services.Jobs;
-using VisualAudio.Services.Video;
-using VisualAudio.Services.Video.Models;
 
 namespace VisualAudio.Services.Jobs.Handlers
 {
@@ -12,7 +9,7 @@ namespace VisualAudio.Services.Jobs.Handlers
     {
         public string AlbumId { get; set; }
         public string SongId { get; set; }
-        public string Filepath { get; set; }
+        public string FileTmpPath { get; set; }
     }
 
     public class FingerprintJobHandler(IFingerprintService fingerprintService, IAlbumRepository albumRepository) : IJobHandler<FingerprintJobPayload>
@@ -30,8 +27,8 @@ namespace VisualAudio.Services.Jobs.Handlers
                 var song = album.Songs.FirstOrDefault(s => s.Id == payload.SongId);
                 if (song == null) return;
 
-
-                var convertedTmpPath = await fingerprintService.ConvertToWavAsync(0, payload.Filepath);
+                using var fileStream = File.OpenRead(payload.FileTmpPath);
+                var convertedTmpPath = await fingerprintService.ConvertToWavAsync(fileStream);
                 var fingerPrintId = await fingerprintService.StoreTrack(convertedTmpPath, album.Artist, song.Name, song.Id, album.Title, album.Id);
 
                 song.SongFingerprint ??= new()
@@ -40,13 +37,19 @@ namespace VisualAudio.Services.Jobs.Handlers
                 };
 
                 song.SongFingerprint.FingerprintId = fingerPrintId;
-                song.SongFingerprint.Filename = payload.Filepath;
+                song.SongFingerprint.Filename = "original-song";
 
                 await albumRepository.UpdateAlbumAsync(payload.AlbumId, album);
+
             }
             catch (Exception e)
             {
                 throw new Exception($"An error occurred when processing job {jobId}", e);
+            }
+            finally
+            {
+                if (File.Exists(payload.FileTmpPath))
+                    File.Delete(payload.FileTmpPath);
             }
         }
     }

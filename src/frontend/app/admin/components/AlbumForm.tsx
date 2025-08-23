@@ -24,12 +24,17 @@ import {
   UploadFileEntry,
   useCreateOrUpdateAlbum,
   useDeleteAlbumFiles,
-  useUpdateVideo,
   useUploadAlbumFiles,
 } from '../../hooks/useAlbumMutations';
 import { useSearchMetadata } from '../../hooks/useAlbums';
 import useAlbumAdminStore from '../../../store/adminAlbumForm';
 import { mapAlbumToForm, mapSongsForm } from '../../../types/album-form';
+import {
+  FingerprintJobPayload,
+  usePostFingerprintJob,
+  usePostVideoJob,
+  VideoJobPayload,
+} from '../../hooks/useJobs';
 
 interface Props {
   album?: Album | null;
@@ -70,11 +75,17 @@ export default function AlbumForm({ album, onClose }: Props) {
     error: deleteFilesError,
   } = useDeleteAlbumFiles();
   const {
-    fetch: downloadVideosApi,
-    data: downloadVideosData,
-    loading: downloadVideosLoading,
-    error: downloadVideosError,
-  } = useUpdateVideo();
+    fetch: postVideoJobsApi,
+    data: postVideoJobsData,
+    loading: postVideoJobsLoading,
+    error: postVideoJobsError,
+  } = usePostVideoJob();
+  const {
+    fetch: postFingerprintJobsApi,
+    data: postFingerprintJobsData,
+    loading: postFingerprintJobsLoading,
+    error: postFingerprintJobsError,
+  } = usePostFingerprintJob();
   const {
     data: metadata,
     loading: metadataLoading,
@@ -109,7 +120,8 @@ export default function AlbumForm({ album, onClose }: Props) {
   }, [metadata]);
 
   const getFilesActions = () => {
-    // const downloadVideos: Array<VideoRequestDto> = [];
+    const songFingerprints: Array<FingerprintJobPayload> = [];
+    const downloadVideos: Array<VideoJobPayload> = [];
     const uploadFiles: Array<UploadFileEntry> = [];
     const deleteFiles: Array<DeleteFileEntry> = [];
 
@@ -129,12 +141,19 @@ export default function AlbumForm({ album, onClose }: Props) {
           fileType: 'SongImage',
           songId: song.id,
         });
-      } else if (song.songVideo) {
-        // downloadVideos.push({ ...song.video, albumId: id, songId: song.id });
-      } else if (!song.songImageFile && song.songImageFilename) {
+      } else if (song.songVideo?.videoUrl) {
+        downloadVideos.push({
+          albumId: id,
+          songId: song.id,
+          maxQuality: song.songVideo.maxQuality,
+          videoUrl: song.songVideo.videoUrl,
+          segments: song.songVideo.segments,
+        });
+      }
+      if (!song.songImageFile && song.songImageFilename) {
         deleteFiles.push({ fileType: 'SongImage', songId: song.id });
-        // } else if (!song.video && song.songVideoFilename) {
-        //   deleteFiles.push({ fileType: 'SongVideo', songId: song.id });
+      } else if (song.songVideo?.filename && song.songVideo?.videoUrl) {
+        deleteFiles.push({ fileType: 'SongVideo', songId: song.id });
       }
 
       if (
@@ -160,28 +179,37 @@ export default function AlbumForm({ album, onClose }: Props) {
         deleteFiles.push({ fileType: 'SongLyrics', songId: song.id });
       }
 
-      // if (song.songAudioFile instanceof File) {
-      //   uploadFiles.push({
-      //     file: song.songAudioFile,
-      //     fileType: 'Song',
-      //     songId: song.id,
-      //   });
-      // } else if (!song.songAudioFile && song.songFilename) {
-      //   deleteFiles.push({ fileType: 'Song', songId: song.id });
-      // }
+      if (
+        song.songFingerprint?.file?.content instanceof File &&
+        song.songFingerprint?.file?.modified
+      ) {
+        songFingerprints.push({
+          albumId: id,
+          songId: song.id,
+          fileContent: song.songFingerprint.file.content,
+        });
+      } else if (
+        song.songFingerprint?.filename &&
+        !!song.songFingerprint?.file &&
+        song.songFingerprint.file.modified
+      ) {
+        deleteFiles.push({ fileType: 'Song', songId: song.id });
+      }
     });
 
-    return { uploadFiles, deleteFiles, downloadVideos: [] }; //todo
+    return { uploadFiles, deleteFiles, downloadVideos, songFingerprints };
   };
 
   const saveAlbum = async () => {
     setSaveError(null);
     const savedAlbum = await saveAlbumApi();
 
-    const { deleteFiles, uploadFiles, downloadVideos } = getFilesActions();
+    const { deleteFiles, uploadFiles, downloadVideos, songFingerprints } =
+      getFilesActions();
     if (uploadFiles.length) await uploadFilesApi(savedAlbum.id, uploadFiles);
     if (deleteFiles.length) await deleteFilesApi(savedAlbum.id, deleteFiles);
-    if (downloadVideos.length) await downloadVideosApi(downloadVideos);
+    if (downloadVideos.length) await postVideoJobsApi(downloadVideos);
+    if (songFingerprints.length) await postFingerprintJobsApi(songFingerprints);
   };
 
   useEffect(() => {
@@ -189,13 +217,16 @@ export default function AlbumForm({ album, onClose }: Props) {
       saveLoading ||
       uploadFilesLoading ||
       deleteFilesLoading ||
-      downloadVideosLoading
+      postVideoJobsLoading ||
+      postFingerprintJobsLoading
     )
       return;
     if (apiSaveError) setSaveError(apiSaveError.message);
     else if (uploadFilesError) setSaveError(uploadFilesError.message);
     else if (deleteFilesError) setSaveError(deleteFilesError.message);
-    else if (downloadVideosError) setSaveError(downloadVideosError.message);
+    else if (postVideoJobsError) setSaveError(postVideoJobsError.message);
+    else if (postFingerprintJobsError)
+      setSaveError(postFingerprintJobsError.message);
     else if (saveData) onClose(true);
   }, [
     saveLoading,
@@ -207,9 +238,12 @@ export default function AlbumForm({ album, onClose }: Props) {
     deleteFilesLoading,
     deleteFilesError,
     deleteFilesData,
-    downloadVideosLoading,
-    downloadVideosData,
-    downloadVideosError,
+    postVideoJobsLoading,
+    postVideoJobsData,
+    postVideoJobsError,
+    postFingerprintJobsLoading,
+    postFingerprintJobsData,
+    postFingerprintJobsError,
     onClose,
   ]);
 
@@ -302,7 +336,8 @@ export default function AlbumForm({ album, onClose }: Props) {
             saveLoading ||
             uploadFilesLoading ||
             deleteFilesLoading ||
-            downloadVideosLoading
+            postVideoJobsLoading ||
+            postFingerprintJobsLoading
           }
         >
           Save

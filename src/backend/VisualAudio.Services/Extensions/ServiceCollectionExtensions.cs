@@ -45,6 +45,7 @@ namespace VisualAudio.Services.Extensions
                     return new JsonJobStore(jobsPath);
                 })
                 .AddSingleton<IJobHandler<VideoJobPayload>, VideoCutJobHandler>()
+                .AddSingleton<IJobHandler<FingerprintJobPayload>, FingerprintJobHandler>()
                 .AddHostedService<JobWorker>();
         }
     }

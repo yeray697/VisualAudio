@@ -88,7 +88,7 @@ export default function AlbumVideoSelector({
                   ? videoUrl
                   : getAlbumFileUrl(
                       config.apiUrl,
-                      existingVideo,
+                      existingVideo?.filename,
                       albumId,
                       songId
                     ) ?? undefined

@@ -25,10 +25,10 @@ export const Player = () => {
   const { textColor, overlayColor, blurhash } = useBlurhashContext();
 
   const { data: lyricsBlob } = useGetAlbumFile(
+    nowPlaying?.nowPlaying.songLyricsFilename,
     nowPlaying?.album.id ?? '',
-    'SongLyrics',
     nowPlaying?.nowPlaying.id,
-    !!nowPlaying?.nowPlaying.id
+    !!nowPlaying?.nowPlaying.id && !!nowPlaying?.nowPlaying.songLyricsFilename
   );
 
   const [lyrics, setLyrics] = useState('');
@@ -58,15 +58,15 @@ export const Player = () => {
   }, [nowPlaying, config.apiUrl, setImageUrl]);
 
   const videoUrl =
-    (nowPlaying?.nowPlaying.songVideoFilename
+    (nowPlaying?.nowPlaying.songVideo?.filename
       ? getAlbumFileUrl(
           config.apiUrl,
-          nowPlaying.nowPlaying.songVideoFilename,
+          nowPlaying.nowPlaying.songVideo?.filename,
           nowPlaying.album.id,
           nowPlaying.nowPlaying.id
         )
       : null) ?? 'https://www.youtube.com/embed/5mGuCdlCcNM?autoplay=1&mute=1';
-  const hasLyrics = !!lyrics;
+  const hasLyrics = !!nowPlaying?.nowPlaying.songLyricsFilename;
   const hasVideo = (nowPlaying?.nowPlaying.position ?? 2) + (1 % 2); // TODO: toggle this
 
   // Calcualte side panel sizes

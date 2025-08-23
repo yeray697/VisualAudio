@@ -310,6 +310,7 @@ export default function AlbumFormSongItem({ index }: Props) {
                         setOpenLyricsDialog(false);
                       }}
                       songId={song.id}
+                      existingLyricsFilename={song.songLyricsFilename}
                       existingLyrics={song.songLyricsFileContent?.content}
                     />
                   </Box>

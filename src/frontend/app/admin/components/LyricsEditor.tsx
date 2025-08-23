@@ -15,6 +15,7 @@ import { FileLike } from '../../../types/album-form';
 interface Props {
   open: boolean;
   songId: string;
+  existingLyricsFilename?: string;
   existingLyrics?: FileLike;
   onClose: () => void;
 }
@@ -36,14 +37,15 @@ const highlightText = (code: string) => {
 
 export const LyricsEditorDialog = ({
   songId,
+  existingLyricsFilename,
   existingLyrics,
   open,
   onClose,
 }: Props) => {
   const { id: albumId, updateSong } = useAlbumAdminStore();
   const { data: lyricsData } = useGetAlbumFile(
+    existingLyricsFilename,
     albumId,
-    'SongLyrics',
     songId,
     open && !!albumId && !!songId && !existingLyrics
   );
@@ -53,14 +55,17 @@ export const LyricsEditorDialog = ({
 
   useEffect(() => {
     if (open && (lyricsData || existingLyrics)) {
-      if (lyricsData) {
+      if (existingLyrics) {
+        setText(existingLyrics as string);
+        setOriginalText(existingLyrics as string);
+      } else if (lyricsData) {
         lyricsData.text().then(txt => {
+          updateSong(songId, {
+            songLyricsFileContent: { content: text, modified: false },
+          });
           setText(txt);
           setOriginalText(txt);
         });
-      } else {
-        setText(existingLyrics as string);
-        setOriginalText(existingLyrics as string);
       }
     }
   }, [open, existingLyrics, lyricsData]);

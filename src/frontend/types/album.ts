@@ -4,8 +4,8 @@ export interface VideoSegment {
 }
 
 export interface Video {
-  jobId: string;
-  filename: string;
+  jobId?: string;
+  filename?: string;
   videoUrl: string;
   segments: VideoSegment[];
   maxQuality: string;
