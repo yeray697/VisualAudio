@@ -16,6 +16,7 @@ RUN adduser -S service -u 1001 -G node
 
 COPY --from=build --chown=service:node /app/.next/standalone ./
 COPY --from=build --chown=service:node /app/.next/static ./.next/static
+COPY --from=build --chown=service:node /app/public ./public
 
 ENV NODE_ENV=production
 ENV PORT=3000
