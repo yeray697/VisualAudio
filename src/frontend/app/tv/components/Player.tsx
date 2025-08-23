@@ -67,7 +67,7 @@ export const Player = () => {
         )
       : null) ?? 'https://www.youtube.com/embed/5mGuCdlCcNM?autoplay=1&mute=1';
   const hasLyrics = !!nowPlaying?.nowPlaying.songLyricsFilename;
-  const hasVideo = (nowPlaying?.nowPlaying.position ?? 2) + (1 % 2); // TODO: toggle this
+  const hasVideo = (nowPlaying?.nowPlaying.position ?? 2) % 2; // TODO: toggle this
 
   // Calcualte side panel sizes
   const layouts = {
@@ -192,7 +192,7 @@ export const Player = () => {
         <MotionBox
           layout
           sx={{
-            width: '25%',
+            width: 'max(25%, 400px)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -250,14 +250,12 @@ export const Player = () => {
                 }}
                 transition={{ duration: 0.4 }}
               >
-                <PlayerElement sx={{ height: '100%' }}>
-                  <Queue
-                    album={nowPlaying.album}
-                    songs={nowPlaying.album.songs}
-                    position={nowPlaying.nowPlaying.position}
-                    maxItems={layouts.queue}
-                  />
-                </PlayerElement>
+                <Queue
+                  album={nowPlaying.album}
+                  songs={nowPlaying.album.songs}
+                  position={nowPlaying.nowPlaying.position}
+                  maxItems={layouts.queue}
+                />
               </MotionBox>
             )}
           </AnimatePresence>

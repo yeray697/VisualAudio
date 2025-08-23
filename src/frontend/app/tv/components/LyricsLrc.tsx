@@ -28,7 +28,7 @@ const Line = styled.div<{
   scroll-margin-block: ${({ active }) => (active ? '10px' : '0px')};
 
   font-size: ${({ active }) =>
-    active ? 'clamp(2rem, 5vw, 3.2rem)' : 'clamp(1.8rem, 4vw, 3rem)'};
+    active ? 'clamp(1.6rem, 2.5vw, 2.6rem)' : 'clamp(1.4rem, 2vw, 2.2rem)'};
   font-weight: ${({ active }) => (active ? 600 : 400)};
   color: ${({ active, textColor, fadedColor }) =>
     active ? textColor : fadedColor};

@@ -1,9 +1,10 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef } from 'react';
 import { Album, Song } from '../../../types/album';
 import { QueueItem } from './QueueItem';
 import { Box } from '@mui/material';
+import { PlayerElement } from './PlayerElement';
 
 type Props = {
   songs: Song[];
@@ -20,10 +21,14 @@ export const Queue = ({ songs, position, album, maxItems }: Props) => {
   if (maxItems > 0) visibleSongs = visibleSongs.slice(0, maxItems);
 
   return (
-    <Box ref={ref} overflow="hidden" height="100%">
-      {visibleSongs.map(s => (
-        <QueueItem key={s.id} album={album} song={s} />
-      ))}
-    </Box>
+    visibleSongs.length > 0 && (
+      <PlayerElement sx={{ height: '100%' }}>
+        <Box ref={ref} overflow="hidden" height="100%">
+          {visibleSongs.map(s => (
+            <QueueItem key={s.id} album={album} song={s} />
+          ))}
+        </Box>
+      </PlayerElement>
+    )
   );
 };
