@@ -119,7 +119,7 @@ export default function AlbumForm({ album, onClose }: Props) {
     });
   }, [metadata]);
 
-  const getFilesActions = () => {
+  const getFilesActions = (albumId: string) => {
     const songFingerprints: Array<FingerprintJobPayload> = [];
     const downloadVideos: Array<VideoJobPayload> = [];
     const uploadFiles: Array<UploadFileEntry> = [];
@@ -143,7 +143,7 @@ export default function AlbumForm({ album, onClose }: Props) {
         });
       } else if (song.songVideo?.videoUrl) {
         downloadVideos.push({
-          albumId: id,
+          albumId: albumId,
           songId: song.id,
           maxQuality: song.songVideo.maxQuality,
           videoUrl: song.songVideo.videoUrl,
@@ -184,7 +184,7 @@ export default function AlbumForm({ album, onClose }: Props) {
         song.songFingerprint?.file?.modified
       ) {
         songFingerprints.push({
-          albumId: id,
+          albumId: albumId,
           songId: song.id,
           fileContent: song.songFingerprint.file.content,
         });
@@ -205,7 +205,7 @@ export default function AlbumForm({ album, onClose }: Props) {
     const savedAlbum = await saveAlbumApi();
 
     const { deleteFiles, uploadFiles, downloadVideos, songFingerprints } =
-      getFilesActions();
+      getFilesActions(savedAlbum.id);
     if (uploadFiles.length) await uploadFilesApi(savedAlbum.id, uploadFiles);
     if (deleteFiles.length) await deleteFilesApi(savedAlbum.id, deleteFiles);
     if (downloadVideos.length) await postVideoJobsApi(downloadVideos);

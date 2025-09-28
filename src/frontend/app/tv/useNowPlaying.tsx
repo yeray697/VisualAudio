@@ -28,7 +28,7 @@ export function useNowPlaying(source: INowPlayingSource | null) {
       if (newPosition >= np.nowPlaying.duration) {
         handleTrackEnd();
       }
-    }, 500);
+    }, 200);
 
     return () => clearInterval(interval);
   }, []);
