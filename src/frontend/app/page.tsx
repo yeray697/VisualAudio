@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { useState, useRef } from "react";
-import styles from "./page.module.css";
-import { useConfig } from "./providers/ConfigProvider";
+import { useState, useRef } from 'react';
+import styles from './page.module.css';
+import { useConfig } from './providers/ConfigProvider';
 
 type Match = {
-  artist: string
-  title: string
-  album: string
-  confidence: number
-  length: number
-}
+  artist: string;
+  title: string;
+  album: string;
+  confidence: number;
+  length: number;
+};
 export default function Home() {
   const config = useConfig();
   const CHUNK_INTERVAL = 500; // ms
   const REQUEST_INTERVAL = 2000; // ms
 
   // Estado para añadir canción
-  const [title, setTitle] = useState("");
-  const [artist, setArtist] = useState("");
-  const [album, setAlbum] = useState("");
+  const [title, setTitle] = useState('');
+  const [artist, setArtist] = useState('');
+  const [album, setAlbum] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -42,7 +42,7 @@ export default function Home() {
 
     if (progressInterval.current) clearInterval(progressInterval.current);
     progressInterval.current = setInterval(() => {
-      setPosition((p) => {
+      setPosition(p => {
         if (p < trackDuration) return p + 1;
         clearInterval(progressInterval.current!);
         return trackDuration;
@@ -52,22 +52,22 @@ export default function Home() {
 
   // --- Añadir canción ---
   const handleUpload = async () => {
-    if (!file) return alert("Selecciona un archivo");
+    if (!file) return alert('Selecciona un archivo');
 
     setUploading(true);
     const formData = new FormData();
-    formData.append("file", file);
-    formData.append("title", title);
-    formData.append("artist", artist);
-    formData.append("album", album);
+    formData.append('file', file);
+    formData.append('title', title);
+    formData.append('artist', artist);
+    formData.append('album', album);
 
     const res = await fetch(`${config.apiUrl}/api/fingerprint/store`, {
-      method: "POST",
+      method: 'POST',
       body: formData,
     });
     setUploading(false);
-    if (res.ok) alert("Canción añadida");
-    else alert("Error al subir");
+    if (res.ok) alert('Canción añadida');
+    else alert('Error al subir');
   };
 
   // --- Iniciar/parar escucha ---
@@ -83,7 +83,7 @@ export default function Home() {
     audioChunks.current = [];
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder.current = new MediaRecorder(stream);
-    mediaRecorder.current.ondataavailable = (e) => {
+    mediaRecorder.current.ondataavailable = e => {
       if (e.data.size > 0) audioChunks.current.push(e.data);
     };
     mediaRecorder.current.start(CHUNK_INTERVAL);
@@ -95,47 +95,42 @@ export default function Home() {
 
   const stopListening = () => {
     mediaRecorder.current?.stop();
-    mediaRecorder.current?.stream.getTracks().forEach((t) => t.stop());
+    mediaRecorder.current?.stream.getTracks().forEach(t => t.stop());
     if (intervalRef.current) clearInterval(intervalRef.current);
     setListening(false);
   };
 
   const sendChunk = async () => {
-    const blob = new Blob(audioChunks.current, { type: "audio/webm" });
+    const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
     const formData = new FormData();
-    formData.append("file", blob, "recording.webm");
-    const start = performance.now();
-    const res = await fetch(`${config.apiUrl}/api/fingerprint/detect?duration=${audioChunks.current.length * CHUNK_INTERVAL}`, {
-      method: "POST",
-      body: formData,
-    });
-    const latency = (performance.now() - start) / 1000; // en segundos
+    formData.append('file', blob, 'recording.webm');
+    const res = await fetch(
+      `${config.apiUrl}/api/fingerprint/detect?duration=${
+        audioChunks.current.length * CHUNK_INTERVAL
+      }`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
 
     if (res.ok) {
       const data = await res.json();
-      if (data && data.track) {
-        const track = data.match.audio.track;
+      if (data) {
+        const track = data.nowPlaying;
 
-        const trackMatchStart = data.match.audio.coverage.trackMatchStartsAt;
-        const queryMatchStart = data.match.audio.coverage.queryMatchStartsAt; 
-        const recordedDuration = data.match.audio.coverage.queryLength;
-        
         // round up as I'm getting better results, as usually I get 1s less than the original playing time
-        const currentPlaybackPosition = Math.ceil(trackMatchStart + (recordedDuration - queryMatchStart) + latency);
-
-        const trackDuration = Math.round(track.length);
-
         setMatch({
           artist: track.artist,
-          album: track.metaFields.album,
+          album: data.album.title,
           confidence: data.confidence,
-          length: track.length,
-          title: track.title
+          length: track.duration,
+          title: track.name,
         });
-        
+
         // Set progress if first time, or if there's a significant difference
-        if (duration === 0 || Math.abs(currentPlaybackPosition-position) > 1)
-          startProgressUpdater(currentPlaybackPosition, trackDuration);
+        if (duration === 0 || Math.abs(data.trackPosition - position) > 1)
+          startProgressUpdater(data.trackPosition, track.duration);
 
         if (data.confidence > 0.7) {
           stopListening();
@@ -156,31 +151,31 @@ export default function Home() {
             className={styles.input}
             placeholder="Título"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={e => setTitle(e.target.value)}
           />
           <input
             className={styles.input}
             placeholder="Artista"
             value={artist}
-            onChange={(e) => setArtist(e.target.value)}
+            onChange={e => setArtist(e.target.value)}
           />
           <input
             className={styles.input}
             placeholder="Álbum"
             value={album}
-            onChange={(e) => setAlbum(e.target.value)}
+            onChange={e => setAlbum(e.target.value)}
           />
           <input
             type="file"
             accept="audio/*"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            onChange={e => setFile(e.target.files?.[0] || null)}
           />
           <button
             onClick={handleUpload}
             disabled={uploading}
             className={styles.button}
           >
-            {uploading ? "Subiendo..." : "Guardar"}
+            {uploading ? 'Subiendo...' : 'Guardar'}
           </button>
         </div>
       </section>
@@ -190,9 +185,11 @@ export default function Home() {
         <h2>Escuchar</h2>
         <button
           onClick={toggleListening}
-          className={`${styles.button} ${listening ? styles.stop : styles.start}`}
+          className={`${styles.button} ${
+            listening ? styles.stop : styles.start
+          }`}
         >
-          {listening ? "Detener" : "Escuchar"}
+          {listening ? 'Detener' : 'Escuchar'}
         </button>
       </section>
 
@@ -216,9 +213,14 @@ export default function Home() {
               max={duration}
               value={position}
               onChange={() => {}}
-              style={{ width: "100%" }}
+              style={{ width: '100%' }}
             />
-            <p>{Math.floor(position / 60)}:{(position % 60).toString().padStart(2, "0")} / {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, "0")}</p>
+            <p>
+              {Math.floor(position / 60)}:
+              {(position % 60).toString().padStart(2, '0')} /{' '}
+              {Math.floor(duration / 60)}:
+              {(duration % 60).toString().padStart(2, '0')}
+            </p>
           </div>
           {/* Aquí más adelante añadiremos portada, letra, etc. */}
         </section>
