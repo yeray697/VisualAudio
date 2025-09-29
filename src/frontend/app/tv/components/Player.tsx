@@ -24,6 +24,7 @@ export const Player = () => {
   const nowPlaying = useNowPlayingStore(state => state.nowPlaying);
   const { setImageUrl } = useBlurhashContext();
   const { textColor, overlayColor, blurhash } = useBlurhashContext();
+  const [isListening, setListening] = useState(true);
 
   const { data: lyricsBlob } = useGetAlbumFile(
     nowPlaying?.nowPlaying.songLyricsFilename,
@@ -101,7 +102,12 @@ export const Player = () => {
         justifyContent="center"
         paddingTop={3}
       >
-        <ListenControl listening={true} stopListening={() => {}} />
+        <ListenControl
+          listening={isListening}
+          stopListening={() => {
+            setListening(false);
+          }}
+        />
       </Box>
       <Box position="relative" width="100vw" height="100vh">
         <Box
