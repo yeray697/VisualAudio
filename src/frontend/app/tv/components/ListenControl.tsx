@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { PlayerElement } from './PlayerElement';
 import { useConfig } from '../../providers/ConfigProvider';
 import { Typography } from '@mui/material';
+import { useNowPlayingStore } from '../../../store/nowPlayingStore';
 
 type Props = {
   listening: boolean;
@@ -10,8 +11,11 @@ type Props = {
 export const ListenControl = ({ listening, stopListening }: Props) => {
   console.log('Render <ListenControl>');
 
+  const { setNowPlaying } = useNowPlayingStore();
+
   const CHUNK_INTERVAL = 500; // ms
   const REQUEST_INTERVAL = 2000; // ms
+  const MAX_CHUNKS = 6000 / CHUNK_INTERVAL; // 6s / chunk interval
 
   const config = useConfig();
   const mediaRecorder = useRef<MediaRecorder | null>(null);
@@ -41,15 +45,18 @@ export const ListenControl = ({ listening, stopListening }: Props) => {
 
     if (res.ok) {
       const data = await res.json();
-      if (data && data.track) {
-        const track = data.match.audio.track;
+      if (data) {
+        setNowPlaying({
+          ...data,
+          updatedAt: new Date(),
+        });
 
         if (data.confidence > 0.7) {
           trackFound();
         }
       }
     }
-  }, [config.apiUrl, trackFound]);
+  }, [config.apiUrl, trackFound, setNowPlaying]);
 
   const startListening = useCallback(async () => {
     audioChunks.current = [];
@@ -58,14 +65,12 @@ export const ListenControl = ({ listening, stopListening }: Props) => {
     mediaRecorder.current.ondataavailable = e => {
       if (e.data.size > 0) audioChunks.current.push(e.data);
 
-      const MAX_CHUNKS = 10000 / CHUNK_INTERVAL; // 10s / chunk interval
       if (audioChunks.current.length > MAX_CHUNKS) {
         audioChunks.current.shift();
       }
     };
     mediaRecorder.current.start(CHUNK_INTERVAL);
 
-    // Cada 2s enviamos lo acumulado
     intervalRef.current = setInterval(sendChunk, REQUEST_INTERVAL);
   }, [sendChunk]);
 
