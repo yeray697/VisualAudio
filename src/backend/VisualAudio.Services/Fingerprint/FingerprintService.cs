@@ -94,9 +94,6 @@ namespace VisualAudio.Services.Fingerprint
                 .Hash();
             modelService.Insert(trackInfo, fingerprints);
 
-            if (File.Exists(path))
-                File.Delete(path);
-
             return trackInfo.Id;
         }
 

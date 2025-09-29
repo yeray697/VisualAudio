@@ -264,7 +264,7 @@ export default function AlbumFormSongItem({ index }: Props) {
                 >
                   <Grid size={{ xs: 6 }}>
                     <AudioSelector
-                      value={song.songFingerprint?.file?.content}
+                      value={song.songFingerprint}
                       albumId={albumId}
                       songId={song.id}
                       height={audioSelectorHeight}

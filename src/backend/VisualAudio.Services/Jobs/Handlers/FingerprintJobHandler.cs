@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 
 using VisualAudio.Data.Albums;
+using VisualAudio.Data.Albums.Models;
 using VisualAudio.Services.Fingerprint;
 
 namespace VisualAudio.Services.Jobs.Handlers
@@ -12,8 +13,9 @@ namespace VisualAudio.Services.Jobs.Handlers
         public string FileTmpPath { get; set; }
     }
 
-    public class FingerprintJobHandler(IFingerprintService fingerprintService, IAlbumRepository albumRepository) : IJobHandler<FingerprintJobPayload>
+    public class FingerprintJobHandler(IFingerprintService fingerprintService, IAlbumRepository albumRepository, IAlbumMetadataRepository albumMetadataRepository) : IJobHandler<FingerprintJobPayload>
     {
+        private const string FileName = "original-song";
         public async Task HandleAsync(string jobId, FingerprintJobPayload payload, CancellationToken cancellationToken)
         {
             try
@@ -31,13 +33,18 @@ namespace VisualAudio.Services.Jobs.Handlers
                 var convertedTmpPath = await fingerprintService.ConvertToWavAsync(fileStream);
                 var fingerPrintId = await fingerprintService.StoreTrack(convertedTmpPath, album.Artist, song.Name, song.Id, album.Title, album.Id);
 
+                var filename = $"{FileName}{Path.GetExtension(payload.FileTmpPath)}";
+                var identifier = AlbumMetadataIdentifier.GetSongFileIdentifier(payload.AlbumId, payload.SongId, filename);
+                var filePath = albumMetadataRepository.GetStoragePath(identifier, true);
+                File.Move(convertedTmpPath, filePath);
                 song.SongFingerprint ??= new()
                 {
                     JobId = jobId
                 };
 
                 song.SongFingerprint.FingerprintId = fingerPrintId;
-                song.SongFingerprint.Filename = "original-song";
+                song.SongFingerprint.Filename = filename;
+
 
                 await albumRepository.UpdateAlbumAsync(payload.AlbumId, album);
 

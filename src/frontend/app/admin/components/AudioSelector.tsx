@@ -11,10 +11,10 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useConfig } from '../../providers/ConfigProvider';
 import { getAlbumFileUrl } from '../../../utils/albumFileUtils';
 import { VisuallyHiddenInput } from './ImageSelector';
-import { FileLike } from '../../../types/album-form';
+import { SongFingerprintContent } from '../../../types/album-form';
 
 interface Props {
-  value?: FileLike;
+  value?: SongFingerprintContent;
   albumId: string;
   songId?: string;
   height: number;
@@ -41,13 +41,34 @@ export default function AudioSelector({
       setPreview(null);
       return;
     }
-    if (typeof value === 'string') {
-      setPreview(getAlbumFileUrl(config.apiUrl, value, albumId, songId));
+
+    if (value.file?.modified) {
+      if (!value.file.content) {
+        // user deleted from ui
+        setPreview(null);
+        return;
+      }
+
+      if (typeof value.file.content === 'string') {
+        setPreview(
+          getAlbumFileUrl(config.apiUrl, value.file.content, albumId, songId)
+        );
+        return;
+      }
+
+      if (value.file.content) {
+        const url = URL.createObjectURL(value.file.content as File);
+        setPreview(url);
+        return () => URL.revokeObjectURL(url);
+      }
+    }
+
+    if (value.filename) {
+      setPreview(
+        getAlbumFileUrl(config.apiUrl, value.filename, albumId, songId)
+      );
       return;
     }
-    const url = URL.createObjectURL(value);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
   }, [value]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

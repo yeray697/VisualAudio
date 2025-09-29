@@ -69,7 +69,9 @@ export const Player = () => {
         )
       : null) ?? 'https://www.youtube.com/embed/5mGuCdlCcNM?autoplay=1&mute=1';
   const hasLyrics = !!nowPlaying?.nowPlaying.songLyricsFilename;
-  const hasVideo = (nowPlaying?.nowPlaying.position ?? 2) % 2; // TODO: toggle this
+  const hasVideo =
+    nowPlaying?.nowPlaying.songVideo?.filename ||
+    (nowPlaying?.nowPlaying.position ?? 2) % 2; // TODO: toggle this
 
   // Calcualte side panel sizes
   const layouts = {
