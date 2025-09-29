@@ -8,18 +8,20 @@ type Props = {
   listening: boolean;
   stopListening: () => void;
 };
+
 export const ListenControl = ({ listening, stopListening }: Props) => {
   console.log('Render <ListenControl>');
 
   const { setNowPlaying } = useNowPlayingStore();
-
-  const CHUNK_INTERVAL = 500; // ms
-  const REQUEST_INTERVAL = 2000; // ms
-  const MAX_CHUNKS = 6000 / CHUNK_INTERVAL; // 6s / chunk interval
-
   const config = useConfig();
+
+  const CHUNK_INTERVAL = 2000;
+  const REQUEST_INTERVAL = 2000;
+  const MAX_SECONDS = 6;
+  const MAX_CHUNKS = MAX_SECONDS / (CHUNK_INTERVAL / 1000); // 6s / 2s = 3 chunks
+
   const mediaRecorder = useRef<MediaRecorder | null>(null);
-  const audioChunks = useRef<Blob[]>([]);
+  const audioBuffers = useRef<ArrayBuffer[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const trackFound = useCallback(() => {
@@ -30,45 +32,46 @@ export const ListenControl = ({ listening, stopListening }: Props) => {
   }, [stopListening]);
 
   const sendChunk = useCallback(async () => {
-    const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
+    if (audioBuffers.current.length === 0) return;
+
+    const blob = new Blob(audioBuffers.current, { type: 'audio/webm' });
+
     const formData = new FormData();
     formData.append('file', blob, 'recording.webm');
+
     const res = await fetch(
-      `${config.apiUrl}/api/fingerprint/detect?duration=${
-        audioChunks.current.length * CHUNK_INTERVAL
-      }`,
-      {
-        method: 'POST',
-        body: formData,
-      }
+      `${config.apiUrl}/api/fingerprint/detect?duration=${MAX_SECONDS * 1000}`,
+      { method: 'POST', body: formData }
     );
 
     if (res.ok) {
       const data = await res.json();
       if (data) {
-        setNowPlaying({
-          ...data,
-          updatedAt: new Date(),
-        });
-
+        setNowPlaying({ ...data, updatedAt: new Date() });
         if (data.confidence > 0.7) {
           trackFound();
         }
       }
     }
-  }, [config.apiUrl, trackFound, setNowPlaying]);
+  }, [config.apiUrl, setNowPlaying, trackFound]);
 
   const startListening = useCallback(async () => {
-    audioChunks.current = [];
+    audioBuffers.current = [];
+
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder.current = new MediaRecorder(stream);
-    mediaRecorder.current.ondataavailable = e => {
-      if (e.data.size > 0) audioChunks.current.push(e.data);
 
-      if (audioChunks.current.length > MAX_CHUNKS) {
-        audioChunks.current.shift();
+    mediaRecorder.current.ondataavailable = async e => {
+      if (e.data.size > 0) {
+        const buf = await e.data.arrayBuffer();
+        audioBuffers.current.push(buf);
+
+        if (audioBuffers.current.length > MAX_CHUNKS) {
+          audioBuffers.current.shift();
+        }
       }
     };
+
     mediaRecorder.current.start(CHUNK_INTERVAL);
 
     intervalRef.current = setInterval(sendChunk, REQUEST_INTERVAL);
@@ -78,6 +81,11 @@ export const ListenControl = ({ listening, stopListening }: Props) => {
     if (listening) {
       startListening();
     }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      mediaRecorder.current?.stop();
+      mediaRecorder.current?.stream.getTracks().forEach(t => t.stop());
+    };
   }, [listening, startListening]);
 
   return (
