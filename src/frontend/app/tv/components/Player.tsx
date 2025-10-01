@@ -82,14 +82,14 @@ export const Player = () => {
 
   if (hasLyrics && !hasVideo) {
     layouts.nowPlaying = true;
-    layouts.queue = 5;
+    layouts.queue = 4;
   } else if (hasLyrics && hasVideo) {
     layouts.nowPlaying = true;
     layouts.lyrics = true;
     layouts.queue = 1;
   } else if (!hasLyrics && hasVideo) {
     layouts.nowPlaying = true;
-    layouts.queue = 5;
+    layouts.queue = 4;
   } else if (!hasLyrics && !hasVideo) {
   } else {
     layouts.nowPlaying = true;

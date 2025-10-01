@@ -38,7 +38,6 @@ builder.Services.AddControllers()
     });
 builder.Services.AddEndpointsApiExplorer();
 
-// Para servir archivos estáticos (wwwroot)
 builder.Services.AddDirectoryBrowser();
 
 var app = builder.Build();
@@ -58,35 +57,25 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAll");
 app.UseRouting();
 app.UseAuthorization();
-// Middleware para imágenes JPEG en /albums
-app.UseWhen(
-    context =>
-        context.Request.Path.StartsWithSegments("/albums"),
-    appBuilder =>
+
+// Servir archivos estáticos con CORS para /albums
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
     {
-        appBuilder.Use(async (context, next) =>
+        var path = ctx.File.PhysicalPath;
+
+        // Aplica CORS a toda la carpeta /albums
+        if (path != null && path.Contains(Path.Combine("wwwroot", "albums")))
         {
-            context.Response.OnStarting(() =>
-            {
-                context.Response.Headers["Access-Control-Allow-Origin"] = "*";
-                return Task.CompletedTask;
-            });
-
-            await next();
-        });
+            ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+            ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET, OPTIONS");
+            ctx.Context.Response.Headers.Append("Access-Control-Allow-Headers", "*");
+        }
     }
-);
-// app.Use(async (context, next) =>
-// {
-//     await next();
+});
 
-//     var path = context.Request.Path.Value;
-//     if (path != null && path.Contains("/albums/") && path.EndsWith(".jpeg"))
-//     {
-//         context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-//     }
-// });
-app.UseStaticFiles(); // Servir wwwroot
+
 app.MapControllers();
 
 // Servir index.html por defecto si alguien entra a /
@@ -113,22 +102,18 @@ void ConfigureWebSocket()
         }
     });
 
-    // Endpoint HTTP para publicar mensaje desde Pi o web
     _ = app.MapPost("/api/publish", async (HttpContext context) =>
     {
         await webSocketManager.BroadcastAsync(context.Request.Body);
         return Results.Ok();
     });
 
-    // Endpoint HTTP para publicar mensaje desde Pi o web
     _ = app.MapGet("/api/nowPlaying", async (HttpContext context) =>
     {
         var nowPlaying = webSocketManager.GetNowPlaying();
         return Results.Ok(nowPlaying);
     });
 }
-
-
 
 public class WebSocketManager
 {
@@ -140,6 +125,7 @@ public class WebSocketManager
         PropertyNameCaseInsensitive = true,
         Converters = { new JsonStringEnumConverter() }
     };
+
     public async Task HandleClient(WebSocket socket)
     {
         var id = Guid.NewGuid().ToString();
@@ -154,7 +140,6 @@ public class WebSocketManager
                 if (result.MessageType == WebSocketMessageType.Close)
                     break;
 
-                // Aquí puedes procesar mensajes entrantes desde la tele, si quieres
                 var clientMsg = Encoding.UTF8.GetString(buffer, 0, result.Count);
                 Console.WriteLine($"Mensaje desde cliente: {clientMsg}");
             }
@@ -176,6 +161,7 @@ public class WebSocketManager
         message.MessageReceived = DateTime.UtcNow;
         _lastMessage.AddOrUpdate(message.Type, message, (_, _) => message);
     }
+
     public async Task BroadcastAsync(Stream stream)
     {
         var messageAsText = await new StreamReader(stream).ReadToEndAsync();
@@ -184,11 +170,11 @@ public class WebSocketManager
             var message = JsonSerializer.Deserialize<Message>(messageAsText, options);
             UpdateLastMessage(message);
         }
-        catch (System.Exception e)
+        catch
         {
-
             return;
         }
+
         var msgBuffer = Encoding.UTF8.GetBytes(messageAsText);
         var tasks = _clients.Values.Select(async socket =>
         {
@@ -200,17 +186,18 @@ public class WebSocketManager
 
         await Task.WhenAll(tasks);
     }
+
     public Message? GetNowPlaying()
     {
         _lastMessage.TryGetValue(MessageType.NOW_PLAYING, out Message value);
         return value;
-
     }
 
     public enum MessageType
     {
         NOW_PLAYING
     }
+
     public class Message
     {
         public DateTime MessageReceived { get; set; }
