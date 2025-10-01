@@ -60,8 +60,8 @@ app.UseAuthorization();
 
 app.Use(async (context, next) =>
 {
-    await next();
     context.Response.Headers.Remove("X-Frame-Options");
+    await next();
 });
 
 // Servir archivos estáticos con CORS para /albums
