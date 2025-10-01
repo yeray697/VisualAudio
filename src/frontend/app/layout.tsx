@@ -59,6 +59,10 @@ export default function RootLayout({
     <html lang="en" className={roboto.variable}>
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <GlobalStyles
