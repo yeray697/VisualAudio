@@ -11,13 +11,17 @@ export default function TVPage() {
   const [devDetails, setDevDetails] = useState('');
   useEffect(() => {
     setDevDetails(
-      `w:${window.innerWidth};h:${window.innerHeight};dpr:${window.devicePixelRatio}`
+      `inner: ${window.innerWidth}x${window.innerHeight}; ` +
+        `screen: ${screen.width}x${screen.height}; ` +
+        `dpr: ${window.devicePixelRatio}`
     );
   }, []);
 
   return (
     <>
-      <Box position="absolute">{devDetails}</Box>
+      <Box position="absolute" zIndex={5}>
+        {devDetails}
+      </Box>
       <BlurhashProvider>
         <Player />
         <NowPlayingUpdater />
