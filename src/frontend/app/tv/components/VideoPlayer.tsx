@@ -14,7 +14,7 @@ export const VideoPlayer = ({ videoUrl }: Props) => {
         height: '100%',
       }}
     >
-      <iframe
+      {/* <iframe
         width="100%"
         height="100%"
         src={videoUrl}
@@ -22,6 +22,15 @@ export const VideoPlayer = ({ videoUrl }: Props) => {
         frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
+      /> */}
+      <video
+        src={videoUrl}
+        width="100%"
+        height="100%"
+        autoPlay
+        muted
+        playsInline
+        controls={false}
       />
     </Box>
   );
