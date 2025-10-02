@@ -52,12 +52,21 @@ namespace VisualAudio.Services.Fingerprint
 
         public async Task<string> ConvertToWavAsync(double duration, string inputPath)
         {
-            var start = (duration / 1000.00) > maxSeconds ? (duration / 1000.00) - maxSeconds : 0;
-            Console.WriteLine("Duration: {0}", duration);
-            Console.WriteLine("Start: {0}", start.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            var seekArgs = $"-ss ${start.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+            _logger.LogInformation("ConvertToWavAsync called. InputPath: {InputPath}, Duration: {Duration}", inputPath, duration);
+
+            if (!File.Exists(inputPath))
+            {
+                _logger.LogError("Input file does not exist: {InputPath}", inputPath);
+                throw new FileNotFoundException("Input file not found", inputPath);
+            }
+
+            var start = (duration / 1000.0) > maxSeconds ? (duration / 1000.0) - maxSeconds : 0;
+            _logger.LogInformation("Start position for FFmpeg: {Start}", start.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             var outputPath = Path.ChangeExtension(inputPath, ".wav");
+
+            _logger.LogInformation("Output WAV path: {OutputPath}", outputPath);
+
             var ffmpeg = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "ffmpeg",
@@ -67,8 +76,24 @@ namespace VisualAudio.Services.Fingerprint
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+
+            _logger.LogInformation("Running FFmpeg command: {Command} {Args}", ffmpeg.FileName, ffmpeg.Arguments);
+
             var process = System.Diagnostics.Process.Start(ffmpeg);
+            string stdOut = await process.StandardOutput.ReadToEndAsync();
+            string stdErr = await process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
+
+            _logger.LogInformation("FFmpeg exited with code {ExitCode}", process.ExitCode);
+            _logger.LogInformation("FFmpeg stdout: {StdOut}", stdOut);
+            _logger.LogInformation("FFmpeg stderr: {StdErr}", stdErr);
+
+            if (!File.Exists(outputPath))
+            {
+                _logger.LogError("FFmpeg did not produce output file: {OutputPath}", outputPath);
+                throw new FileNotFoundException("FFmpeg output not found", outputPath);
+            }
+
             return outputPath;
         }
 
@@ -86,7 +111,7 @@ namespace VisualAudio.Services.Fingerprint
                 .From(path)
                 .WithFingerprintConfig(config =>
                 {
-                    config.Audio.Stride = new IncrementalStaticStride(256); // o IncrementalStaticStride(128)
+                    config.Audio.Stride = new IncrementalStaticStride(256);
                     config.Audio.FrequencyRange = new FrequencyRange(318, 2000);
                     return config;
                 })
@@ -99,34 +124,56 @@ namespace VisualAudio.Services.Fingerprint
 
         public async Task<DetectionResult?> DetectTrack(string path)
         {
-            var queryResult = await QueryCommandBuilder.Instance
-                .BuildQueryCommand()
-                .From(path)
-                .WithQueryConfig(config =>
-                {
-                    config.Audio.FingerprintConfiguration.Stride = new IncrementalRandomStride(256, 512);
-                    config.Audio.ThresholdVotes = 3;  // más permisivo para fragmentos cortos
-                    config.Audio.PermittedGap = 3.0;  // tolerancia mayor
-                    return config;
-                })
-                .UsingServices(modelService, audioService)
-                .Query();
+            _logger.LogInformation("DetectTrack called. Path: {Path}", path);
 
-            if (!queryResult.ContainsMatches)
-                return null;
-
-            _logger.LogInformation("Match");
-            var bestMatch = queryResult.BestMatch!;
-            if (bestMatch != null && modelService is EmyModelService emyModelService)
-                emyModelService.RegisterMatches([bestMatch.ConvertToAvQueryMatch()], false);
-
-            var track = modelService.ReadTrackById(bestMatch.TrackId);
-
-            return new DetectionResult()
+            if (!File.Exists(path))
             {
-                Match = bestMatch,
-                Track = track!
-            };
+                _logger.LogError("File does not exist: {Path}", path);
+                return null;
+            }
+
+            try
+            {
+                var queryResult = await QueryCommandBuilder.Instance
+                    .BuildQueryCommand()
+                    .From(path)
+                    .WithQueryConfig(config =>
+                    {
+                        config.Audio.FingerprintConfiguration.Stride = new IncrementalRandomStride(256, 512);
+                        config.Audio.ThresholdVotes = 3;
+                        config.Audio.PermittedGap = 3.0;
+                        return config;
+                    })
+                    .UsingServices(modelService, audioService)
+                    .Query();
+
+                if (!queryResult.ContainsMatches)
+                {
+                    _logger.LogInformation("No matches found for {Path}", path);
+                    return null;
+                }
+
+                var bestMatch = queryResult.BestMatch!;
+                _logger.LogInformation("Best match found: {TrackId}", bestMatch.TrackId);
+
+                if (bestMatch != null && modelService is EmyModelService emyModelService)
+                {
+                    emyModelService.RegisterMatches(new[] { bestMatch.ConvertToAvQueryMatch() }, false);
+                }
+
+                var track = modelService.ReadTrackById(bestMatch.TrackId);
+
+                return new DetectionResult()
+                {
+                    Match = bestMatch,
+                    Track = track!
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error detecting track {Path}", path);
+                throw;
+            }
         }
 
         public void DeleteTrack(string fingerprintId)
