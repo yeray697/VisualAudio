@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 using VisualAudio.Services.Fingerprint;
 using VisualAudio.Services.Playing;
@@ -54,6 +54,38 @@ namespace VisualAudio.Api.Controllers
             var nowPlaying = await _playingService.DetectNowPlayingAsync(stream);
 
             return Ok(nowPlaying);
+        }
+
+        private static readonly Dictionary<string, List<byte[]>> deviceAudioBuffers = new();
+        private const int MAX_CHUNKS = 3; // 6s / 2s
+        [HttpPost("detect2")]
+        public async Task<IActionResult> DetectChunk([FromForm] IFormFile file, [FromQuery] string deviceId)
+        {
+            if (!deviceAudioBuffers.ContainsKey(deviceId))
+                deviceAudioBuffers[deviceId] = new List<byte[]>();
+
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            deviceAudioBuffers[deviceId].Add(ms.ToArray());
+
+            // Mantener solo los últimos MAX_CHUNKS
+            if (deviceAudioBuffers[deviceId].Count > MAX_CHUNKS)
+                deviceAudioBuffers[deviceId].RemoveAt(0);
+
+            // Concatenar los chunks
+            var concatenatedBlob = deviceAudioBuffers[deviceId].SelectMany(b => b).ToArray();
+
+            // Guardar en temp file WebM
+            var tmpPath = Path.Combine(Path.GetTempPath(), $"device_{deviceId}_{Guid.NewGuid()}.webm");
+            await System.IO.File.WriteAllBytesAsync(tmpPath, concatenatedBlob);
+
+            // Convertir a WAV usando FFmpeg
+            var wavPath = await _fingerprintService.ConvertToWavAsync(0, tmpPath);
+
+            // Detectar track
+            var result = await _fingerprintService.DetectTrack(wavPath);
+
+            return Ok(result);
         }
 
         [HttpGet("nowplaying")]
