@@ -14,7 +14,6 @@ type Props = {
 };
 
 export const Queue = ({ songs, position, album, maxItems }: Props) => {
-  console.log('Render <Queue>');
   const ref = useRef<HTMLDivElement>(null);
 
   let visibleSongs = songs.filter(s => s.position > position);

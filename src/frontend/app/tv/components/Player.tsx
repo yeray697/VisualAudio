@@ -19,7 +19,6 @@ import { ListenControl } from './ListenControl';
 const MotionBox = motion(Box);
 
 export const Player = () => {
-  console.log('Render <Player>');
   const config = useConfig();
   const nowPlaying = useNowPlayingStore(state => state.nowPlaying);
   const { setImageUrl } = useBlurhashContext();
@@ -59,20 +58,17 @@ export const Player = () => {
     setImageUrl(nowPlayingImageUrl);
   }, [nowPlaying, config.apiUrl, setImageUrl]);
 
-  const videoUrl =
-    (nowPlaying?.nowPlaying.songVideo?.filename
-      ? getAlbumFileUrl(
-          config.apiUrl,
-          nowPlaying.nowPlaying.songVideo?.filename,
-          nowPlaying.album.id,
-          nowPlaying.nowPlaying.id
-        )
-      : null) ?? 'https://www.youtube.com/embed/5mGuCdlCcNM?autoplay=1&mute=1';
+  const videoUrl = nowPlaying?.nowPlaying.songVideo?.filename
+    ? getAlbumFileUrl(
+        config.apiUrl,
+        nowPlaying.nowPlaying.songVideo?.filename,
+        nowPlaying.album.id,
+        nowPlaying.nowPlaying.id
+      )
+    : null;
   const hasLyrics = !!nowPlaying?.nowPlaying.songLyricsFilename;
-  const hasVideo =
-    nowPlaying?.nowPlaying.songVideo?.filename ||
-    (nowPlaying?.nowPlaying.position ?? 2) % 2; // TODO: toggle this
-
+  const hasVideo = !!videoUrl;
+  console.log('hasVideo:', hasVideo);
   // Calcualte side panel sizes
   const layouts = {
     nowPlaying: false,
@@ -170,7 +166,7 @@ export const Player = () => {
                   transition={{ duration: 0.5 }}
                   sx={{
                     width: '100%',
-                    aspectRatio: '16 / 9',
+                    // aspectRatio: '16 / 9',
                     borderRadius: 2,
                     overflow: 'hidden',
                     boxShadow: 3,

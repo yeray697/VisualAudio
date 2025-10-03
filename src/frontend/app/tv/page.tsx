@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 
 export default function TVPage() {
-  console.log('Render <TVPage>');
   const [devDetails, setDevDetails] = useState('');
   useEffect(() => {
     setDevDetails(

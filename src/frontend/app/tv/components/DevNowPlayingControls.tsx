@@ -14,8 +14,6 @@ type Props = {
 export const DevNowPlayingControls = ({
   onSelectedNowPlaying: onSelectedSong,
 }: Props) => {
-  console.log('Render <DevNowPlayingControls>');
-
   const { data: albums } = useAlbums();
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const selectSong = (song: Song) => {

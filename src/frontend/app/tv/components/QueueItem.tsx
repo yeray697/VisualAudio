@@ -12,7 +12,6 @@ type Props = {
 };
 
 export const QueueItem = ({ song, album }: Props) => {
-  console.log('Render <QueueItem>');
   const config = useConfig();
   const imageUrl = getSongImageWithFallback(
     config.apiUrl,

@@ -10,7 +10,6 @@ type Props = {
   big?: boolean;
 };
 export const CurrentPlaying = ({ big }: Props) => {
-  console.log('Render <CurrentPlaying>');
   const config = useConfig();
   const nowPlaying = useNowPlayingStore(state => state.nowPlaying);
 

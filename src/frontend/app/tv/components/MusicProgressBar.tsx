@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useNowPlayingStore } from '../../../store/nowPlayingStore';
 import { LinearProgress, Typography } from '@mui/material';
@@ -6,12 +6,11 @@ import { useBlurhashContext } from './BlurhashProvider';
 import { formatDurationToTimeString } from '../../../utils/timeUtils';
 
 type Props = {
-  duration: number
-}
+  duration: number;
+};
 export const MusicProgressBar = ({ duration }: Props) => {
-  console.log("Render <MusicProgressBar>");
   const position = useNowPlayingStore(state => state.position);
-  const positionStr = position ? formatDurationToTimeString(position) : "";
+  const positionStr = position ? formatDurationToTimeString(position) : '';
   const durationStr = formatDurationToTimeString(duration);
   const positionDisplay = `${positionStr} / ${durationStr}`;
 
@@ -19,8 +18,7 @@ export const MusicProgressBar = ({ duration }: Props) => {
 
   return (
     <>
-      {
-        position &&
+      {position && (
         <>
           <LinearProgress
             sx={{
@@ -33,11 +31,12 @@ export const MusicProgressBar = ({ duration }: Props) => {
                 transition: 'background-color 0.3s ease',
               },
             }}
-            variant="determinate" value={position * 100 / duration}
+            variant="determinate"
+            value={(position * 100) / duration}
           />
-          <Typography variant='subtitle2'>{positionDisplay}</Typography>
+          <Typography variant="subtitle2">{positionDisplay}</Typography>
         </>
-      }
+      )}
     </>
   );
 };

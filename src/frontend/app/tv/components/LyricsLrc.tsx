@@ -39,7 +39,6 @@ const Line = styled.div<{
 const log = console.log.bind(console);
 
 export const LyricsLrc = ({ lyrics }: Props) => {
-  console.log('Render <LyricsLrc>');
   const position = useNowPlayingStore(state => state.position);
 
   const { textColor, dominantColor, fadedTextColor } = useBlurhashContext();

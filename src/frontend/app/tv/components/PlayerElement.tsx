@@ -9,7 +9,6 @@ type Props = {
   sx?: SxProps<Theme>;
 };
 export const PlayerElement = ({ children, sx }: Props) => {
-  console.log('Render <PlayerElement>');
   const { textColor, overlayColor, dominantColor } = useBlurhashContext();
 
   return (
