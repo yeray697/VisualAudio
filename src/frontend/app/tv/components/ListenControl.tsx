@@ -5,13 +5,12 @@ import { Typography } from '@mui/material';
 import { useNowPlayingStore } from '../../../store/nowPlayingStore';
 import { NowPlaying } from '../../../types/message';
 
-type Props = {
-  listening: boolean;
-  stopListening: () => void;
-};
-
-export const ListenControl = ({ listening, stopListening }: Props) => {
+export const ListenControl = () => {
   const { setNowPlaying } = useNowPlayingStore();
+  const isListening = useNowPlayingStore(state => state.shouldListenNext);
+  const setShouldListenNext = useNowPlayingStore(
+    state => state.setShouldListenNext
+  );
   const config = useConfig();
 
   const START_INTERVAL = 2000;
@@ -33,9 +32,9 @@ export const ListenControl = ({ listening, stopListening }: Props) => {
   const trackFound = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     cleanupRecorders();
-    stopListening();
+    setShouldListenNext(false);
     setDebugStatus('Track found! Stopped listening.');
-  }, [stopListening]);
+  }, [setShouldListenNext]);
 
   const sendRecording = useCallback(
     async (blob: Blob) => {
@@ -143,7 +142,7 @@ export const ListenControl = ({ listening, stopListening }: Props) => {
   }, []);
 
   useEffect(() => {
-    if (listening) {
+    if (isListening) {
       setDebugStatus('Starting interval...');
       startRecorder();
       intervalRef.current = setInterval(() => {
@@ -161,11 +160,11 @@ export const ListenControl = ({ listening, stopListening }: Props) => {
       cleanupRecorders();
       setDebugStatus('Stopped');
     };
-  }, [listening, startRecorder, cleanupRecorders]);
+  }, [isListening, startRecorder, cleanupRecorders]);
 
   return (
     <>
-      {listening && (
+      {isListening && (
         <PlayerElement
           sx={{
             zIndex: 5,

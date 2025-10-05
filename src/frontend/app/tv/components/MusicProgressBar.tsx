@@ -10,7 +10,8 @@ type Props = {
 };
 export const MusicProgressBar = ({ duration }: Props) => {
   const position = useNowPlayingStore(state => state.position);
-  const positionStr = position ? formatDurationToTimeString(position) : '';
+  const positionStr =
+    typeof position === 'number' ? formatDurationToTimeString(position) : '';
   const durationStr = formatDurationToTimeString(duration);
   const positionDisplay = `${positionStr} / ${durationStr}`;
 
@@ -18,7 +19,7 @@ export const MusicProgressBar = ({ duration }: Props) => {
 
   return (
     <>
-      {position && (
+      {typeof position === 'number' && (
         <>
           <LinearProgress
             sx={{

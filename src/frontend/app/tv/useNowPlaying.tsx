@@ -1,17 +1,27 @@
-// useNowPlaying.ts
 import { useEffect } from 'react';
 import { useNowPlayingStore } from '../../store/nowPlayingStore';
 import { Song } from '../../types/album';
 import { INowPlayingSource } from '../sources/NowPlayingSource';
 
 export function useNowPlaying(source: INowPlayingSource | null) {
-  const { nowPlaying, setNowPlaying, position, updateCurrentTrack } =
-    useNowPlayingStore();
+  const {
+    nowPlaying,
+    setNowPlaying,
+    position,
+    updateCurrentTrack,
+    setStopped,
+    setShouldListenNext,
+    isStopped,
+    shouldListenNext,
+    resetFlags,
+  } = useNowPlayingStore();
 
   const refreshData = () => {
     if (!source) return;
     source.getNowPlaying().then(np => {
       if (!np) return;
+      // si quieres que al refrescar desde el servidor se reseteen flags,
+      // usa setNowPlayingResetFlags en su lugar.
       setNowPlaying({
         ...np,
         updatedAt: new Date(),
@@ -20,6 +30,8 @@ export function useNowPlaying(source: INowPlayingSource | null) {
   };
 
   useEffect(() => {
+    if (!nowPlaying || isStopped || shouldListenNext) return;
+
     const interval = setInterval(() => {
       const np = useNowPlayingStore.getState().nowPlaying;
       if (!np) return;
@@ -31,7 +43,7 @@ export function useNowPlaying(source: INowPlayingSource | null) {
     }, 200);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [nowPlaying, isStopped, shouldListenNext]);
 
   useEffect(() => {
     refreshData();
@@ -40,6 +52,7 @@ export function useNowPlaying(source: INowPlayingSource | null) {
   const handleTrackEnd = () => {
     const current = useNowPlayingStore.getState().nowPlaying;
     if (!current) return;
+
     const sortedSongs = [...current.album.songs].sort(
       (a, b) => a.position - b.position
     );
@@ -49,6 +62,11 @@ export function useNowPlaying(source: INowPlayingSource | null) {
     const nextTrack: Song | undefined = sortedSongs[currentIndex + 1];
 
     if (nextTrack) {
+      // Si la siguiente tiene fingerprint, indicamos que hay que escuchar
+      if (nextTrack.songFingerprint?.fingerprintId) {
+        setShouldListenNext(true);
+      }
+
       setNowPlaying({
         ...current,
         nowPlaying: nextTrack,
@@ -56,13 +74,16 @@ export function useNowPlaying(source: INowPlayingSource | null) {
         updatedAt: new Date(),
       });
     } else {
-      setNowPlaying({
-        ...current,
-        trackPosition: current.nowPlaying.duration,
-        updatedAt: new Date(),
-      });
+      setStopped(true);
     }
   };
 
-  return { nowPlaying, position, refreshData };
+  return {
+    nowPlaying,
+    position,
+    refreshData,
+    isStopped,
+    shouldListenNext,
+    resetFlags,
+  };
 }
