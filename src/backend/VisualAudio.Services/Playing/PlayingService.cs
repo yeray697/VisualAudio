@@ -25,7 +25,8 @@ public class PlayingService(IFingerprintService fingerprintService, IAlbumsServi
                 return null;
             tmpWavPath = await fingerprintService.ConvertToWavAsync(0, tmpPath);
             var result = await fingerprintService.DetectTrack(tmpWavPath);
-            return await ProcessFingerprintResultAsync(result, stopwatch);
+            nowPlaying = await ProcessFingerprintResultAsync(result, stopwatch);
+            return nowPlaying;
 
         }
         catch (Exception)
@@ -94,7 +95,7 @@ public class PlayingService(IFingerprintService fingerprintService, IAlbumsServi
     }
 
 
-    private async Task<string?> StoreTmpFileAsync(Stream file)
+    private static async Task<string?> StoreTmpFileAsync(Stream file)
     {
         if (file == null || file.Length == 0)
             return null;

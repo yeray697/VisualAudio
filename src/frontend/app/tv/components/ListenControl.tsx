@@ -46,7 +46,7 @@ export const ListenControl = ({ listening, stopListening }: Props) => {
       formData.append('file', blob, 'recording.webm');
 
       try {
-        const res = await fetch(`${config.apiUrl}/api/fingerprint/detect`, {
+        const res = await fetch(`${config.apiUrl}/api/audio/detect`, {
           method: 'POST',
           body: formData,
         });
@@ -145,7 +145,7 @@ export const ListenControl = ({ listening, stopListening }: Props) => {
   useEffect(() => {
     if (listening) {
       setDebugStatus('Starting interval...');
-      startRecorder(); // arranca uno inmediato
+      startRecorder();
       intervalRef.current = setInterval(() => {
         console.log('Interval tick -> start new recorder');
         startRecorder();

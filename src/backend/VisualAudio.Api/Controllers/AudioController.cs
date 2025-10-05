@@ -15,9 +15,9 @@ namespace VisualAudio.Api.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    public class FingerprintController(IFingerprintService _fingerprintService, IPlayingService _playingService) : ControllerBase
+    public class AudioController(IFingerprintService _fingerprintService, IPlayingService _playingService) : ControllerBase
     {
-        [HttpPost("store")]
+        [HttpPost("storeFingerprint")]
         public async Task<IActionResult> Store([FromForm] TrackUploadDto request)
         {
             return await WrapFileTempActionAsync(request.File, async (tempPath) =>
@@ -25,24 +25,6 @@ namespace VisualAudio.Api.Controllers
                 var trackId = await _fingerprintService.StoreTrack(tempPath, request.Artist, request.Title, "", request.Album, "");
                 return Ok(new { TrackId = trackId });
             });
-        }
-
-        [HttpPost("detectOld")]
-        public async Task<IActionResult> DetectOld([FromForm] IFormFile file, [FromQuery] double? duration = null)
-        {
-            return await WrapFileTempActionAsync(file, async (tempPath) =>
-            {
-                var result = await _fingerprintService.DetectTrack(tempPath);
-
-                return Ok(new
-                {
-                    track = result?.Track?.Title,
-                    artist = result?.Track?.Artist,
-                    metaFields = result?.Track?.MetaFields,
-                    confidence = result?.Match?.Audio?.Confidence,
-                    match = result?.Match
-                });
-            }, duration);
         }
 
         [HttpPost("detect")]
@@ -56,39 +38,7 @@ namespace VisualAudio.Api.Controllers
             return Ok(nowPlaying);
         }
 
-        private static readonly Dictionary<string, List<byte[]>> deviceAudioBuffers = new();
-        private const int MAX_CHUNKS = 3; // 6s / 2s
-        [HttpPost("detect2")]
-        public async Task<IActionResult> DetectChunk([FromForm] IFormFile file, [FromQuery] string deviceId)
-        {
-            if (!deviceAudioBuffers.ContainsKey(deviceId))
-                deviceAudioBuffers[deviceId] = new List<byte[]>();
-
-            using var ms = new MemoryStream();
-            await file.CopyToAsync(ms);
-            deviceAudioBuffers[deviceId].Add(ms.ToArray());
-
-            // Mantener solo los últimos MAX_CHUNKS
-            if (deviceAudioBuffers[deviceId].Count > MAX_CHUNKS)
-                deviceAudioBuffers[deviceId].RemoveAt(0);
-
-            // Concatenar los chunks
-            var concatenatedBlob = deviceAudioBuffers[deviceId].SelectMany(b => b).ToArray();
-
-            // Guardar en temp file WebM
-            var tmpPath = Path.Combine(Path.GetTempPath(), $"device_{deviceId}_{Guid.NewGuid()}.webm");
-            await System.IO.File.WriteAllBytesAsync(tmpPath, concatenatedBlob);
-
-            // Convertir a WAV usando FFmpeg
-            var wavPath = await _fingerprintService.ConvertToWavAsync(0, tmpPath);
-
-            // Detectar track
-            var result = await _fingerprintService.DetectTrack(wavPath);
-
-            return Ok(result);
-        }
-
-        [HttpGet("nowplaying")]
+        [HttpGet("nowPlaying")]
         public IActionResult NowPlaying()
         {
             var nowPlaying = _playingService.GetNowPlaying();
