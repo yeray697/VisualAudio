@@ -105,7 +105,7 @@ export default function Home() {
     const formData = new FormData();
     formData.append('file', blob, 'recording.webm');
     const res = await fetch(
-      `${config.apiUrl}/api/fingerprint/detect?duration=${
+      `${config.apiUrl}/api/audio/detect?duration=${
         audioChunks.current.length * CHUNK_INTERVAL
       }`,
       {
