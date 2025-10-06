@@ -21,7 +21,6 @@ import { VideoContent } from '../../../../types/album-form';
 
 interface Props {
   existingVideo?: VideoContent;
-  albumId: string;
   songId: string;
   songDuration: number;
   open: boolean;
@@ -29,7 +28,6 @@ interface Props {
 }
 export default function AlbumVideoSelector({
   existingVideo,
-  albumId,
   songId,
   songDuration,
   open,
@@ -86,12 +84,8 @@ export default function AlbumVideoSelector({
               videoUrl={
                 !!videoUrl
                   ? videoUrl
-                  : getAlbumFileUrl(
-                      config.apiUrl,
-                      existingVideo?.filename,
-                      albumId,
-                      songId
-                    ) ?? undefined
+                  : getAlbumFileUrl(config.apiUrl, existingVideo?.filename) ??
+                    undefined
               }
             />
           )}

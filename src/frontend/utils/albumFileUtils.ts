@@ -2,27 +2,21 @@ import { FileLike } from '../types/album-form';
 
 export function getAlbumFileUrl(
   baseUrl: string,
-  fileName: FileLike | undefined,
-  albumId: string,
-  songId: string | undefined = undefined
+  fileName: FileLike | undefined
 ): string | null {
   if (!fileName || fileName instanceof File) return null;
-  let url = `${baseUrl}/albums/${albumId}`;
-  if (songId) url += `/${songId}`;
-  return `${url}/${fileName}`;
+  return `${baseUrl}/${fileName}`;
 }
 
 export function getSongImageWithFallback(
   baseUrl: string,
   fileName: FileLike | undefined,
-  fallbackImage: FileLike | undefined,
-  albumId: string,
-  songId: string | undefined = undefined
+  fallbackImage: FileLike | undefined
 ): string | null {
   return fileName
-    ? getAlbumFileUrl(baseUrl, fileName, albumId, songId)
+    ? getAlbumFileUrl(baseUrl, fileName)
     : fallbackImage
-    ? getAlbumFileUrl(baseUrl, fallbackImage, albumId)
+    ? getAlbumFileUrl(baseUrl, fallbackImage)
     : null;
 }
 

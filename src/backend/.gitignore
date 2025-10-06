@@ -1,6 +1,7 @@
 VisualAudio.Api/appsettings.Development.json
 
 # Ignore wwwroot/albums (default root for db/files)
+VisualAudio.Api/wwwroot/tmp/*
 VisualAudio.Api/wwwroot/albums/*
 VisualAudio.Api/wwwroot/jobs.json
 

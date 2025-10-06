@@ -1,4 +1,4 @@
-using VisualAudio.Data.Albums.Models;
+﻿using VisualAudio.Data.Albums.Models;
 using VisualAudio.Data.FileStorage;
 
 namespace VisualAudio.Data.Albums
@@ -11,7 +11,7 @@ namespace VisualAudio.Data.Albums
         public async Task<Album> CreateAlbumAsync(Album album)
         {
             var albumPath = GetStoragePath(album.Id, metadataFile);
-            await fileStorage.SaveFileAsync(album, albumPath);
+            _ = await fileStorage.SaveFileAsync(album, albumPath);
             return album;
         }
 

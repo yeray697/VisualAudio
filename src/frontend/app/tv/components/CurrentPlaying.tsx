@@ -18,9 +18,7 @@ export const CurrentPlaying = ({ big }: Props) => {
     getSongImageWithFallback(
       config.apiUrl,
       nowPlaying.nowPlaying.songImageFilename,
-      nowPlaying.album.albumImageFilename,
-      nowPlaying.album.id,
-      nowPlaying.nowPlaying.id
+      nowPlaying.album.albumImageFilename
     );
   return (
     <>

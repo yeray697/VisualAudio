@@ -16,9 +16,7 @@ export const QueueItem = ({ song, album }: Props) => {
   const imageUrl = getSongImageWithFallback(
     config.apiUrl,
     song.songImageFilename,
-    album.albumImageFilename,
-    album.id,
-    song.id
+    album.albumImageFilename
   );
   return (
     <Box

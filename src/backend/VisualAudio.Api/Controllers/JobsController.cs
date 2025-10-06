@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
+using VisualAudio.Data.FileStorage;
 using VisualAudio.Services.Extensions;
 using VisualAudio.Services.Jobs;
 using VisualAudio.Services.Jobs.Handlers;
@@ -11,10 +12,12 @@ namespace VisualAudio.Api.Controllers
     public class JobsController : ControllerBase
     {
         private readonly IJobStore _jobStore;
+        private readonly IFileStorageService _fileStorageService;
 
-        public JobsController(IJobStore jobStore)
+        public JobsController(IJobStore jobStore, IFileStorageService fileStorageService)
         {
             _jobStore = jobStore;
+            _fileStorageService = fileStorageService;
         }
 
         [HttpPost("video")]
@@ -24,14 +27,8 @@ namespace VisualAudio.Api.Controllers
         [HttpPost("fingerprint")]
         public async Task<IActionResult> CreateFingerprintJob([FromForm] FingerprintJobRequest request)
         {
-            var uploadsFolder = Path.Combine("uploads"); // o Path.Combine("ruta", "a", "uploads")
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
-            }
-            var extension = Path.GetExtension(request.FileContent.FileName);
-            var tempPath = Path.Combine(uploadsFolder, Guid.NewGuid().ToString() + extension); //TODO: Generate this using IOption directory value
-            using (var fs = new FileStream(tempPath, FileMode.Create))
+            var tmpPath = _fileStorageService.GetPath(Guid.NewGuid().ToString() + Path.GetExtension(request.FileContent.FileName));
+            using (var fs = new FileStream(tmpPath, FileMode.Create))
             {
                 await request.FileContent.CopyToAsync(fs);
             }
@@ -40,7 +37,7 @@ namespace VisualAudio.Api.Controllers
             {
                 AlbumId = request.AlbumId,
                 SongId = request.SongId,
-                FileTmpPath = tempPath
+                FileTmpPath = tmpPath
             };
 
             return await EnqueueJobAsync(payload);

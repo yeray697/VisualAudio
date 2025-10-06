@@ -93,16 +93,16 @@ namespace VisualAudio.Jobs.Services
             var identifier = GetAlbumMetadataIdentifier(filename, albumId, songId);
 
             var album = await albumRepository.GetAlbumAsync(albumId);
-            await albumMetadataRepository.UpsertFileForAlbumAsync(identifier, content);
+            var filePath = await albumMetadataRepository.UpsertFileForAlbumAsync(identifier, content);
 
             if (isAlbumFile)
             {
-                album.AlbumImageFilename = filename;
+                album.AlbumImageFilename = filePath;
             }
             else
             {
                 var song = album.Songs.First(s => s.Id == songId);
-                song.SongImageFilename = filename;
+                song.SongImageFilename = filePath;
             }
             await albumRepository.UpdateAlbumAsync(albumId, album);
         }

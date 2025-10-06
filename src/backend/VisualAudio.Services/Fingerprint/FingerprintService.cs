@@ -11,6 +11,8 @@ using SoundFingerprinting.InMemory;
 using SoundFingerprinting.Query;
 using SoundFingerprinting.Strides;
 
+using VisualAudio.Data.FileStorage;
+
 namespace VisualAudio.Services.Fingerprint
 {
     public class FingerprintService : IFingerprintService
@@ -19,10 +21,12 @@ namespace VisualAudio.Services.Fingerprint
         private readonly ILogger<FingerprintService> _logger;
         private readonly IModelService modelService;
         private readonly IAudioService audioService;
+        private readonly IFileStorageService _fileStorageService;
 
-        public FingerprintService(ILogger<FingerprintService> logger, IConfiguration config)
+        public FingerprintService(ILogger<FingerprintService> logger, IConfiguration config, IFileStorageService fileStorageService)
         {
             _logger = logger;
+            _fileStorageService = fileStorageService;
             var host = config["Fingerprint:Emy:Host"] ?? throw new ArgumentException("Missing Fingerprint__Emy__Host parameter on appsettings");
             var port = config["Fingerprint:Emy:Port"] ?? throw new ArgumentException("Missing Fingerprint__Emy__Port parameter on appsettings");
             _logger.LogInformation("Host: {Host}", host);
@@ -38,7 +42,7 @@ namespace VisualAudio.Services.Fingerprint
             audioService = new FFmpegAudioService();
         }
 
-        public async Task<string?> ConvertToWavAsync(Stream content)
+        public async Task<string> ConvertToWavAsync(Stream content)
         {
             content.Position = 0;
             var tmpPath = await StoreTmpFileAsync(content);
@@ -181,12 +185,12 @@ namespace VisualAudio.Services.Fingerprint
             modelService.DeleteTrack(fingerprintId);
         }
 
-        private static async Task<string?> StoreTmpFileAsync(Stream file)
+        private async Task<string?> StoreTmpFileAsync(Stream file)
         {
             if (file == null || file.Length == 0)
                 return null;
 
-            var tempPath = Path.Combine(Path.GetTempPath(), $"VisualAudio_{Path.GetRandomFileName()}");
+            var tempPath = Path.Combine(_fileStorageService.GetPath($"VisualAudio_{Path.GetRandomFileName()}", true));
 
             await using (Stream stream = File.Create(tempPath))
             {

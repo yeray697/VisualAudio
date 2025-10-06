@@ -255,7 +255,6 @@ export default function AlbumForm({ album, onClose }: Props) {
           <Grid size={{ xs: 3 }}>
             <FileSelector
               value={albumImageFile}
-              albumId={id}
               onChange={file => setAlbum({ albumImageFile: file })}
             />
           </Grid>

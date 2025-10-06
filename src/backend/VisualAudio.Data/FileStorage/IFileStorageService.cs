@@ -1,14 +1,14 @@
-namespace VisualAudio.Data.FileStorage
+﻿namespace VisualAudio.Data.FileStorage
 {
     public interface IFileStorageService
     {
-        Task<string> SaveFileAsync(Stream fileStream, string relativePath);
-        Task<string> SaveFileAsync<T>(T content, string relativePath);
-        Task<Stream> ReadFileAsync(string relativePath);
-        Task<T?> ReadFileAsync<T>(string relativePath);
-        Task DeleteFileAsync(string relativePath);
-        Task DeleteDirectoryAsync(string relativePath);
-        bool FileExists(string relativePath);
-        string GetPath(string path);
+        Task<string> SaveFileAsync(Stream fileStream, string relativePath, bool isTmpFile = false);
+        Task<string> SaveFileAsync<T>(T content, string relativePath, bool isTmpFile = false);
+        Task<Stream> ReadFileAsync(string relativePath, bool isTmpFile = false);
+        Task<T?> ReadFileAsync<T>(string relativePath, bool isTmpFile = false);
+        Task DeleteFileAsync(string relativePath, bool isTmpFile = false);
+        Task DeleteDirectoryAsync(string relativePath, bool isTmpFile = false);
+        bool FileExists(string relativePath, bool isTmpFile = false);
+        string GetPath(string path, bool isTmpFile = false);
     }
 }

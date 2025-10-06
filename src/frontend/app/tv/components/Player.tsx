@@ -46,11 +46,7 @@ export const Player = () => {
         getAlbumFileUrl(
           config.apiUrl,
           nowPlaying.nowPlaying.songImageFilename ??
-            nowPlaying.album.albumImageFilename,
-          nowPlaying.album.id,
-          nowPlaying.nowPlaying.songImageFilename
-            ? nowPlaying.nowPlaying.id
-            : undefined
+            nowPlaying.album.albumImageFilename
         )) ??
       undefined;
 
@@ -59,12 +55,7 @@ export const Player = () => {
   }, [nowPlaying, config.apiUrl, setImageUrl]);
 
   const videoUrl = nowPlaying?.nowPlaying.songVideo?.filename
-    ? getAlbumFileUrl(
-        config.apiUrl,
-        nowPlaying.nowPlaying.songVideo?.filename,
-        nowPlaying.album.id,
-        nowPlaying.nowPlaying.id
-      )
+    ? getAlbumFileUrl(config.apiUrl, nowPlaying.nowPlaying.songVideo?.filename)
     : null;
   const hasLyrics = !!nowPlaying?.nowPlaying.songLyricsFilename;
   const hasVideo = !!videoUrl;

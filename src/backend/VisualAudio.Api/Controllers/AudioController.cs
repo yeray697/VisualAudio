@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
+using VisualAudio.Data.FileStorage;
 using VisualAudio.Services.Fingerprint;
 using VisualAudio.Services.Playing;
 
@@ -15,7 +16,7 @@ namespace VisualAudio.Api.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    public class AudioController(IFingerprintService _fingerprintService, IPlayingService _playingService) : ControllerBase
+    public class AudioController(IFingerprintService _fingerprintService, IPlayingService _playingService, IFileStorageService fileStorageService) : ControllerBase
     {
         [HttpPost("storeFingerprint")]
         public async Task<IActionResult> Store([FromForm] TrackUploadDto request)
@@ -30,12 +31,21 @@ namespace VisualAudio.Api.Controllers
         [HttpPost("detect")]
         public async Task<IActionResult> Detect([FromForm] IFormFile file)
         {
-            var stream = await GetStreamAsync(file);
-            if (stream == null)
-                return BadRequest("No file uploaded.");
-            var nowPlaying = await _playingService.DetectNowPlayingAsync(stream);
+            var tmpPath = GetTempFilePath(file.FileName);
+            try
+            {
+                using var stream = await GetStreamAsync(file, tmpPath);
+                if (stream == null)
+                    return BadRequest("No file uploaded.");
+                var nowPlaying = await _playingService.DetectNowPlayingAsync(stream);
 
-            return Ok(nowPlaying);
+                return Ok(nowPlaying);
+            }
+            finally
+            {
+                if (System.IO.File.Exists(tmpPath))
+                    System.IO.File.Delete(tmpPath);
+            }
         }
 
         [HttpGet("nowPlaying")]
@@ -46,13 +56,12 @@ namespace VisualAudio.Api.Controllers
             return Ok(nowPlaying);
         }
 
-        private static async Task<Stream?> GetStreamAsync(IFormFile file)
+        private async Task<Stream?> GetStreamAsync(IFormFile file, string tmpPath)
         {
             if (file == null || file.Length == 0)
                 return null;
 
-            var tempPath = Path.Combine(Path.GetTempPath(), $"VisualAudio_{Path.GetRandomFileName()}" + Path.GetExtension(file.FileName));
-            Stream stream = System.IO.File.Create(tempPath);
+            Stream stream = System.IO.File.Create(tmpPath);
             await file.CopyToAsync(stream);
 
             return stream;
@@ -65,7 +74,7 @@ namespace VisualAudio.Api.Controllers
 
             // Guardar en un archivo temporal
             string? convertedTmpPath = null;
-            var tempPath = Path.Combine(Path.GetTempPath(), $"VisualAudio_{Path.GetRandomFileName()}" + Path.GetExtension(file.FileName));
+            var tempPath = GetTempFilePath(file.FileName);
             await using (Stream stream = System.IO.File.Create(tempPath))
             {
                 await file.CopyToAsync(stream);
@@ -84,5 +93,8 @@ namespace VisualAudio.Api.Controllers
                     System.IO.File.Delete(convertedTmpPath);
             }
         }
+
+        private string GetTempFilePath(string filename)
+            => fileStorageService.GetPath($"VisualAudio_{Path.GetRandomFileName()}" + Path.GetExtension(filename), true);
     }
 }

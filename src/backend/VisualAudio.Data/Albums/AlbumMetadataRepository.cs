@@ -7,10 +7,10 @@ namespace VisualAudio.Data.Albums
     {
         private const string albumBasePath = "albums";
 
-        public async Task UpsertFileForAlbumAsync<T>(AlbumMetadataIdentifier identifier, T file)
+        public async Task<string> UpsertFileForAlbumAsync<T>(AlbumMetadataIdentifier identifier, T file)
         {
             var filePath = GetStoragePath(identifier);
-            await fileStorage.SaveFileAsync(file, filePath);
+            return await fileStorage.SaveFileAsync(file, filePath);
         }
 
         public async Task DeleteFileForAlbumAsync(AlbumMetadataIdentifier identifier)
@@ -25,11 +25,11 @@ namespace VisualAudio.Data.Albums
             return await fileStorage.ReadFileAsync(filePath);
         }
 
-        public string GetStoragePath(AlbumMetadataIdentifier identifier, bool includeBasePath = false)
+        public string GetStoragePath(AlbumMetadataIdentifier identifier, bool includeBasePath = false, bool isTmpFile = false)
         {
             var path = Path.Combine(albumBasePath, identifier.AlbumId, identifier.SongId ?? string.Empty, identifier.Filename);
 
-            return includeBasePath ? fileStorage.GetPath(path) : path;
+            return includeBasePath ? fileStorage.GetPath(path, isTmpFile) : path;
         }
     }
 }

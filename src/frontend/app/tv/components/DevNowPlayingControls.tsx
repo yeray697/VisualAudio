@@ -66,7 +66,6 @@ export const DevNowPlayingControls = ({
             >
               <Box width="56px">
                 <FileSelector
-                  albumId={album.id}
                   value={album.albumImageFilename ?? null}
                   readonly
                   onChange={() => {}}
@@ -96,7 +95,6 @@ export const DevNowPlayingControls = ({
               </IconButton>
               <Box width="56px">
                 <FileSelector
-                  albumId={selectedAlbum.id}
                   value={selectedAlbum.albumImageFilename ?? null}
                   readonly
                   onChange={() => {}}

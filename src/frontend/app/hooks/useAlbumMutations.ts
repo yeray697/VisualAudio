@@ -94,7 +94,7 @@ export function useGetAlbumFile(
   autoFetch = true
 ) {
   return useApi<Blob>({
-    endpoint: `/albums/${albumId}/${songId ? songId + '/' : ''}/${filename}`,
+    endpoint: '/' + filename,
     method: 'GET',
     autoFetch,
     mapFn: res => res as Blob,

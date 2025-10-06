@@ -88,8 +88,6 @@ export default function AlbumFormSongItem({ index }: Props) {
               >
                 <FileSelector
                   value={song.songImageFile}
-                  albumId={albumId}
-                  songId={song.id}
                   onChange={file =>
                     updateSong(song.id, { songImageFile: file })
                   }
@@ -265,8 +263,6 @@ export default function AlbumFormSongItem({ index }: Props) {
                   <Grid size={{ xs: 6 }}>
                     <AudioSelector
                       value={song.songFingerprint}
-                      albumId={albumId}
-                      songId={song.id}
                       height={audioSelectorHeight}
                       border={audioSelectorBorder}
                       padding={audioSelectorPadding}
@@ -324,7 +320,6 @@ export default function AlbumFormSongItem({ index }: Props) {
         onClose={() => {
           setOpenVideoEditorDialog(false);
         }}
-        albumId={albumId}
         songId={song.id}
         songDuration={song.duration}
         existingVideo={song.songVideo}

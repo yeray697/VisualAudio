@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics;
 
+using VisualAudio.Data.FileStorage;
 using VisualAudio.Services.Albums;
 using VisualAudio.Services.Fingerprint;
 using VisualAudio.Services.Playing.Models;
 
 namespace VisualAudio.Services.Playing;
 
-public class PlayingService(IFingerprintService fingerprintService, IAlbumsService albumsService) : IPlayingService
+public class PlayingService(IFingerprintService fingerprintService, IAlbumsService albumsService, IFileStorageService fileStorageService) : IPlayingService
 {
     private PlayingDto? nowPlaying;
 
@@ -95,13 +96,13 @@ public class PlayingService(IFingerprintService fingerprintService, IAlbumsServi
     }
 
 
-    private static async Task<string?> StoreTmpFileAsync(Stream file)
+    private async Task<string?> StoreTmpFileAsync(Stream file)
     {
         if (file == null || file.Length == 0)
             return null;
         file.Position = 0;
 
-        var tempPath = Path.Combine(Path.GetTempPath(), $"VisualAudio_{Path.GetRandomFileName()}");
+        var tempPath = Path.Combine(fileStorageService.GetPath($"VisualAudio_{Path.GetRandomFileName()}", true));
 
         await using (Stream stream = File.Create(tempPath))
         {

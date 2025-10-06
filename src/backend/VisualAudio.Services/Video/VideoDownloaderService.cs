@@ -161,6 +161,7 @@ namespace VisualAudio.Services.Video
             process.ErrorDataReceived += (s, e) => { if (e.Data != null) stdError.Add(e.Data); };
 
             process.Start();
+            process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
             await process.WaitForExitAsync();

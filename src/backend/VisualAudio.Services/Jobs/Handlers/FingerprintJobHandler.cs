@@ -18,6 +18,7 @@ namespace VisualAudio.Services.Jobs.Handlers
         private const string FileName = "original-song";
         public async Task HandleAsync(string jobId, FingerprintJobPayload payload, CancellationToken cancellationToken)
         {
+            string? convertedTmpPath = null;
             try
             {
                 if (payload == null)
@@ -30,7 +31,7 @@ namespace VisualAudio.Services.Jobs.Handlers
                 if (song == null) return;
 
                 using var fileStream = File.OpenRead(payload.FileTmpPath);
-                var convertedTmpPath = await fingerprintService.ConvertToWavAsync(fileStream);
+                convertedTmpPath = await fingerprintService.ConvertToWavAsync(fileStream);
                 var fingerPrintId = await fingerprintService.StoreTrack(convertedTmpPath, album.Artist, song.Name, song.Id, album.Title, album.Id);
 
                 var filename = $"{FileName}{Path.GetExtension(payload.FileTmpPath)}";
@@ -57,6 +58,8 @@ namespace VisualAudio.Services.Jobs.Handlers
             {
                 if (File.Exists(payload.FileTmpPath))
                     File.Delete(payload.FileTmpPath);
+                if (File.Exists(convertedTmpPath))
+                    File.Delete(convertedTmpPath);
             }
         }
     }

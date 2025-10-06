@@ -15,8 +15,6 @@ import { SongFingerprintContent } from '../../../types/album-form';
 
 interface Props {
   value?: SongFingerprintContent;
-  albumId: string;
-  songId?: string;
   height: number;
   padding: number;
   border: number;
@@ -28,8 +26,6 @@ export default function AudioSelector({
   height,
   padding,
   border,
-  albumId,
-  songId,
   onChange,
 }: Props) {
   const config = useConfig();
@@ -50,9 +46,7 @@ export default function AudioSelector({
       }
 
       if (typeof value.file.content === 'string') {
-        setPreview(
-          getAlbumFileUrl(config.apiUrl, value.file.content, albumId, songId)
-        );
+        setPreview(getAlbumFileUrl(config.apiUrl, value.file.content));
         return;
       }
 
@@ -64,9 +58,7 @@ export default function AudioSelector({
     }
 
     if (value.filename) {
-      setPreview(
-        getAlbumFileUrl(config.apiUrl, value.filename, albumId, songId)
-      );
+      setPreview(getAlbumFileUrl(config.apiUrl, value.filename));
       return;
     }
   }, [value]);

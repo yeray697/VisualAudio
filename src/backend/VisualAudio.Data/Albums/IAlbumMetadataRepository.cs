@@ -4,9 +4,9 @@ namespace VisualAudio.Data.Albums
 {
     public interface IAlbumMetadataRepository
     {
-        Task UpsertFileForAlbumAsync<T>(AlbumMetadataIdentifier identifier, T file);
+        Task<string> UpsertFileForAlbumAsync<T>(AlbumMetadataIdentifier identifier, T file);
         Task DeleteFileForAlbumAsync(AlbumMetadataIdentifier identifier);
         Task<Stream> GetFileForAlbumAsync(AlbumMetadataIdentifier identifier);
-        string GetStoragePath(AlbumMetadataIdentifier identifier, bool includeBasePath=false);
+        string GetStoragePath(AlbumMetadataIdentifier identifier, bool includeBasePath = false, bool isTmpFile = false);
     }
 }
