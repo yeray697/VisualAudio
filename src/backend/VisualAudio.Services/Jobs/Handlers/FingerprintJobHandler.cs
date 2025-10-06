@@ -44,7 +44,7 @@ namespace VisualAudio.Services.Jobs.Handlers
                 };
 
                 song.SongFingerprint.FingerprintId = fingerPrintId;
-                song.SongFingerprint.Filename = filename;
+                song.SongFingerprint.Filename = albumMetadataRepository.ParseStoragePath(filePath);
 
 
                 await albumRepository.UpdateAlbumAsync(payload.AlbumId, album);

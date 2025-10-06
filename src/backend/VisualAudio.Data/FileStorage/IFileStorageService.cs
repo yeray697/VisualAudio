@@ -10,5 +10,6 @@
         Task DeleteDirectoryAsync(string relativePath, bool isTmpFile = false);
         bool FileExists(string relativePath, bool isTmpFile = false);
         string GetPath(string path, bool isTmpFile = false);
+        string ParseStoragePath(string path, bool isTmpFile = false);
     }
 }

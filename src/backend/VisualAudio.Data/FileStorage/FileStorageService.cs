@@ -87,5 +87,8 @@ namespace VisualAudio.Data.FileStorage
             => isTmpFile ?
             Path.Combine(_tmpPath, path)
             : Path.Combine(_basePath, path);
+
+        public string ParseStoragePath(string path, bool isTmpFile = false)
+            => path.Replace(isTmpFile ? _tmpPath : _basePath, "");
     }
 }

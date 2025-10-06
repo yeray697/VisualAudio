@@ -31,5 +31,10 @@ namespace VisualAudio.Data.Albums
 
             return includeBasePath ? fileStorage.GetPath(path, isTmpFile) : path;
         }
+
+        public string ParseStoragePath(string path, bool isTmpFile = false)
+        {
+            return fileStorage.ParseStoragePath(path, isTmpFile);
+        }
     }
 }

@@ -8,5 +8,6 @@ namespace VisualAudio.Data.Albums
         Task DeleteFileForAlbumAsync(AlbumMetadataIdentifier identifier);
         Task<Stream> GetFileForAlbumAsync(AlbumMetadataIdentifier identifier);
         string GetStoragePath(AlbumMetadataIdentifier identifier, bool includeBasePath = false, bool isTmpFile = false);
+        string ParseStoragePath(string path, bool isTmpFile = false);
     }
 }

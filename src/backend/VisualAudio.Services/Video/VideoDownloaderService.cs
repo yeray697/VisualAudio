@@ -24,12 +24,12 @@ namespace VisualAudio.Services.Video
         {
             var downloadedVideoPath = await DownloadVideoAsync(request);
             if (request.Segments.Count < 1)
-                return downloadedVideoPath;
+                return albumMetadataRepository.ParseStoragePath(downloadedVideoPath);
 
             var newVideoPath = downloadedVideoPath.Replace(VideoFilenameTmp, VideoFilename);
             await CutVideo(downloadedVideoPath, newVideoPath, request.Segments);
             File.Delete(downloadedVideoPath);
-            return Path.GetFileName(newVideoPath);
+            return albumMetadataRepository.ParseStoragePath(newVideoPath);
         }
 
         private async Task<string> DownloadVideoAsync(VideoRequestDto request)
