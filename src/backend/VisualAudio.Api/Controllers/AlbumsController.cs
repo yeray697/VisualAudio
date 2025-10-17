@@ -142,6 +142,14 @@ namespace VisualAudio.Api.Controllers
             return Ok(release);
         }
 
+        [HttpGet("sync/discogs")]
+        public async Task<IActionResult> SyncWithDiscogsAsync()
+        {
+            await metadataService.SyncWithDiscogsAsync();
+
+            return Created();
+        }
+
         private static async Task<Stream> DownloadFileAsync(string url)
         {
             using var httpClient = new HttpClient();

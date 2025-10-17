@@ -1,21 +1,14 @@
+using VisualAudio.Services.Albums;
+using VisualAudio.Services.Albums.Models;
 using VisualAudio.Services.Metadata.Lyrics;
 using VisualAudio.Services.Metadata.Models;
-using VisualAudio.Services.Video;
 
 namespace VisualAudio.Services.Metadata
 {
-    public class MetadataService(IDiscogsService discogsService, ILyricsService lyricsService) : IMetadataService
+    public class MetadataService(IDiscogsService discogsService, ILyricsService lyricsService, IAlbumsService albumsService) : IMetadataService
     {
         public async Task<AlbumMetadataDto?> GetMetadataForAlbumAsync(string artist, string album)
         {
-            // await videoDownloader.DownloadVideo(new()
-            // {
-            //     AlbumId = "cf867741-cfd6-4213-bb3f-ef914891df71",
-            //     SongId = "81c0c0df-2635-4c26-b75f-24bc2e9eb36c",
-            //     Filename = "song-video",
-            //     VideoUrl = "https://www.youtube.com/watch?v=yG96RttfZtM",
-            //     VideoSegments = [new() { Start = 3.5, End = 184 }]
-            // });
             var release = await discogsService.GetReleaseAsync(artist, album);
             if (release == null)
                 return null;
@@ -24,14 +17,14 @@ namespace VisualAudio.Services.Metadata
                 Artist = artist,
                 Title = release.Title,
                 AlbumImageFilename = release.Images.FirstOrDefault(i => i.Type == "primary")?.Uri,
-                RelatedVideos = release.Videos.Select(v => new RelatedVideos()
+                RelatedVideos = [.. release.Videos.Select(v => new RelatedVideos()
                 {
                     Description = v.Description,
                     Duration = v.Duration,
                     Title = v.Title,
                     Uri = v.Uri
-                }).ToList(),
-                Songs = release.Tracklist
+                })],
+                Songs = [.. release.Tracklist
                     .OrderBy(t => ParseTrackPosition(t.Position).side)
                     .ThenBy(t => ParseTrackPosition(t.Position).track)
                     .Select((s, i) => new SongMetadataDto()
@@ -40,7 +33,7 @@ namespace VisualAudio.Services.Metadata
                         Duration = GetDurationInSeconds(s.Duration),
                         Name = s.Title,
                         Position = i + 1
-                    }).ToList()
+                    })]
             };
 
 
@@ -50,6 +43,45 @@ namespace VisualAudio.Services.Metadata
             }
 
             return albumDto;
+        }
+
+        public async Task SyncWithDiscogsAsync()
+        {
+            var collection = await albumsService.GetAllAsync();
+            var discogsReleaseIds = await discogsService.GetMyCollectionReleaseIdsAsync();
+            foreach (var releaseId in discogsReleaseIds)
+            {
+                var release = await discogsService.GetReleaseAsync(releaseId);
+                if (release == null)
+                    continue;
+                string artist = release.Artists.FirstOrDefault()?.Name ?? "Unknown";
+                var albumDto = new AlbumDto()
+                {
+                    Artist = artist,
+                    Title = release.Title,
+                    AlbumImageFilename = release.Images.FirstOrDefault(i => i.Type == "primary")?.Uri,
+                    Songs = [.. release.Tracklist
+                    .OrderBy(t => ParseTrackPosition(t.Position).side)
+                    .ThenBy(t => ParseTrackPosition(t.Position).track)
+                    .Select((s, i) => new SongMetadataDto()
+                    {
+                        Artist = string.Join(", ", s.Extraartists.Where(a => a.Role == "Featuring").Select(a => a.Name).Prepend(artist)),
+                        Duration = GetDurationInSeconds(s.Duration),
+                        Name = s.Title,
+                        Position = i + 1
+                    })]
+                };
+                //todo albumimagefilename
+
+                // Skip if already present
+                if (collection.Any(a =>
+                    a.Title.Equals(albumDto.Title, StringComparison.InvariantCultureIgnoreCase)
+                    && a.Artist.Equals(albumDto.Artist, StringComparison.InvariantCultureIgnoreCase))
+                )
+                    continue;
+
+                await albumsService.CreateAlbumAsync(albumDto);
+            }
         }
 
         private static int GetDurationInSeconds(string duration)
@@ -63,14 +95,15 @@ namespace VisualAudio.Services.Metadata
 
             return 0;
         }
-        public static (int side, int track) ParseTrackPosition(string? position)
+
+        private static (int side, int track) ParseTrackPosition(string? position)
         {
             if (string.IsNullOrWhiteSpace(position))
                 return (int.MaxValue, int.MaxValue); // Si no hay posición, lo mandamos al final
 
             // Ejemplo: "A1" → letra = A, número = 1
-            var letterPart = new string(position.TakeWhile(char.IsLetter).ToArray());
-            var numberPart = new string(position.SkipWhile(char.IsLetter).ToArray());
+            var letterPart = new string([.. position.TakeWhile(char.IsLetter)]);
+            var numberPart = new string([.. position.SkipWhile(char.IsLetter)]);
 
             int side = !string.IsNullOrEmpty(letterPart)
                 ? char.ToUpper(letterPart[0]) - 'A' + 1

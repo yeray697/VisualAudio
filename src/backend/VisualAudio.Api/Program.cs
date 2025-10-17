@@ -11,6 +11,7 @@ using VisualAudio.Services.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 // === Configuración de CORS ===
 builder.Services.AddCors(options =>
 {
@@ -43,15 +44,13 @@ builder.Services.AddDirectoryBrowser();
 var app = builder.Build();
 ConfigureWebSocket();
 
-if (app.Environment.IsDevelopment())
+app.MapOpenApi();
+// http://localhost:5112/scalar/
+app.MapScalarApiReference(options =>
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference(options =>
-    {
-        options.Title = "VisualAudio API";
-        options.Theme = ScalarTheme.Default;
-    });
-}
+    options.Title = "VisualAudio API";
+    options.Theme = ScalarTheme.Default;
+});
 
 // === Middleware ===
 app.UseCors("AllowAll");
@@ -126,7 +125,7 @@ public class WebSocketManager
     private readonly ConcurrentDictionary<string, WebSocket> _clients = new();
     private readonly ConcurrentDictionary<MessageType, Message> _lastMessage = new();
 
-    private static JsonSerializerOptions options = new JsonSerializerOptions()
+    private readonly static JsonSerializerOptions options = new()
     {
         PropertyNameCaseInsensitive = true,
         Converters = { new JsonStringEnumConverter() }
