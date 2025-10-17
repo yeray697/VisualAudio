@@ -6,10 +6,10 @@ namespace VisualAudio.Services.Jobs.Handlers
 {
     public class VideoJobPayload
     {
-        public string VideoUrl { get; set; }
+        public required string VideoUrl { get; set; }
         public List<VideoSegment> Segments { get; set; } = [];
-        public string AlbumId { get; set; }
-        public string SongId { get; set; }
+        public required string AlbumId { get; set; }
+        public required string SongId { get; set; }
         public string MaxQuality { get; set; } = "2160";
 
         public class VideoSegment
@@ -50,9 +50,9 @@ namespace VisualAudio.Services.Jobs.Handlers
                     JobId = jobId,
                     MaxQuality = payload.MaxQuality,
                     Segments = [.. payload.Segments.Select(s => new Data.Albums.Models.Video.VideoSegment() { End = s.End, Start = s.Start })],
+                    Filename = resultFilename,
                     VideoUrl = payload.VideoUrl
                 };
-                song.SongVideo.Filename = resultFilename;
 
                 await albumRepository.UpdateAlbumAsync(payload.AlbumId, album);
             }

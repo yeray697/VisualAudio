@@ -3,8 +3,8 @@
     public class Song
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
-        public string Name { get; set; }
-        public string Artist { get; set; }
+        public required string Name { get; set; }
+        public required string Artist { get; set; }
         public int Position { get; set; }
         public int Duration { get; set; }
         public SongFingerprint? SongFingerprint { get; set; }
@@ -17,9 +17,9 @@
 
     public class Video
     {
-        public string JobId { get; set; }
-        public string Filename { get; set; }
-        public string VideoUrl { get; set; }
+        public required string JobId { get; set; }
+        public string? Filename { get; set; }
+        public required string VideoUrl { get; set; }
         public List<VideoSegment> Segments { get; set; } = [];
         public string MaxQuality { get; set; } = "2160";
 
@@ -32,8 +32,8 @@
 
     public class SongFingerprint
     {
-        public string JobId { get; set; }
-        public string Filename { get; set; }
-        public string FingerprintId { get; set; }
+        public required string JobId { get; set; }
+        public required string Filename { get; set; }
+        public required string FingerprintId { get; set; }
     }
 }

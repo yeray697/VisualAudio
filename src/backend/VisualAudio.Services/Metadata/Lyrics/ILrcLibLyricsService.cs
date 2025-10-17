@@ -3,22 +3,22 @@ namespace VisualAudio.Services.Metadata.Lyrics
     public class LrcLibSearchResponse
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string TrackName { get; set; }
-        public string ArtistName { get; set; }
-        public string AlbumName { get; set; }
+        public required string Name { get; set; }
+        public required string TrackName { get; set; }
+        public required string ArtistName { get; set; }
+        public required string AlbumName { get; set; }
         public double Duration { get; set; }
         public bool Instrumental { get; set; }
-        public string PlainLyrics { get; set; }
-        public string SyncedLyrics { get; set; }
+        public required string PlainLyrics { get; set; }
+        public required string SyncedLyrics { get; set; }
     }
 
     public class LrcLibResult
     {
-        public string Title { get; set; }
-        public string[] Artists { get; set; }
-        public string Lyrics { get; set; }
-        public string SyncedLyrics { get; set; }
+        public required string Title { get; set; }
+        public required string[] Artists { get; set; }
+        public required string Lyrics { get; set; }
+        public required string SyncedLyrics { get; set; }
     }
 
 

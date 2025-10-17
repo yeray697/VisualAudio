@@ -34,8 +34,8 @@ namespace VisualAudio.Data.FileStorage
 
         public async Task<string> SaveFileAsync<T>(T content, string relativePath, bool isTmpFile = false)
         {
-            if (typeof(T) is Stream || typeof(Stream).IsAssignableFrom(typeof(T)))
-                return await SaveFileAsync((Stream)(object)content, relativePath, isTmpFile);
+            if (content is Stream stream)
+                return await SaveFileAsync(stream, relativePath, isTmpFile);
             var fullPath = GetPath(relativePath, isTmpFile);
             Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
 
@@ -44,7 +44,7 @@ namespace VisualAudio.Data.FileStorage
             return relativePath;
         }
 
-        public async Task<Stream> ReadFileAsync(string relativePath, bool isTmpFile = false)
+        public Stream ReadFile(string relativePath, bool isTmpFile = false)
         {
             var fullPath = GetPath(relativePath, isTmpFile);
             return File.OpenRead(fullPath);
@@ -53,8 +53,8 @@ namespace VisualAudio.Data.FileStorage
         public async Task<T?> ReadFileAsync<T>(string relativePath, bool isTmpFile = false)
         {
             var fullPath = GetPath(relativePath, isTmpFile);
-            if (typeof(T) is Stream || typeof(Stream).IsAssignableFrom(typeof(T)))
-                return (T)(object)await ReadFileAsync(fullPath);
+            if (typeof(Stream).IsAssignableFrom(typeof(T)))
+                return (T)(object) ReadFile(fullPath);
 
             if (!File.Exists(fullPath))
                 return default;

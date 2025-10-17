@@ -92,7 +92,7 @@ namespace VisualAudio.Jobs.Services
             var filename =  isAlbumFile ? "album-cover" : "song-cover";
             var identifier = GetAlbumMetadataIdentifier(filename, albumId, songId);
 
-            var album = await albumRepository.GetAlbumAsync(albumId);
+            var album = await albumRepository.GetAlbumAsync(albumId) ?? throw new KeyNotFoundException($"Album id {albumId} not found");
             var filePath = await albumMetadataRepository.UpsertFileForAlbumAsync(identifier, content);
 
             if (isAlbumFile)
@@ -110,7 +110,7 @@ namespace VisualAudio.Jobs.Services
         public async Task DeleteImage(string albumId, string? songId)
         {
             bool isAlbumFile = string.IsNullOrWhiteSpace(songId);
-            var album = await albumRepository.GetAlbumAsync(albumId);
+            var album = await albumRepository.GetAlbumAsync(albumId) ?? throw new KeyNotFoundException($"Album id {albumId} not found");
             string? filename = null;
             if (isAlbumFile)
             {
@@ -154,12 +154,11 @@ namespace VisualAudio.Jobs.Services
         public async Task DeleteVideoAsync(string albumId, string songId)
         {
             var album = await albumRepository.GetAlbumAsync(albumId);
-            string? filename = null;
 
             var song = album?.Songs.FirstOrDefault(s => s.Id == songId);
             if (song?.SongVideo == null)
                 return;
-            filename = song.SongVideo.Filename;
+            string? filename = song.SongVideo.Filename;
             song.SongVideo = null;
 
             if (!string.IsNullOrEmpty(filename))

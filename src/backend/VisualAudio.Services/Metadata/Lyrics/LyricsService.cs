@@ -47,7 +47,7 @@ namespace VisualAudio.Services.Metadata.Lyrics
             }
             catch (Exception e)
             {
-                logger.LogWarning("An error has occurred searching lyrics on LRCLIB for {Artist} - {Name} - {Album} ({Duration})", album.Artist, songName, album.Title, songDuration);
+                logger.LogWarning(e, "An error has occurred searching lyrics on LRCLIB for {Artist} - {Name} - {Album} ({Duration})", album.Artist, songName, album.Title, songDuration);
                 return (null, null);
             }
         }
@@ -71,7 +71,7 @@ namespace VisualAudio.Services.Metadata.Lyrics
             }
             catch (Exception e)
             {
-                logger.LogWarning("An error has occurred searching lyrics on LRCLIB for {Artist} - {Name} - {Album} ({Duration})", album.Artist, songName, album.Title, songDuration);
+                logger.LogWarning(e, "An error has occurred searching lyrics on LRCLIB for {Artist} - {Name} - {Album} ({Duration})", album.Artist, songName, album.Title, songDuration);
                 return (null, null);
             }
         }

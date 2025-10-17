@@ -19,10 +19,10 @@ namespace VisualAudio.Data.Albums
             await fileStorage.DeleteFileAsync(filePath);
         }
 
-        public async Task<Stream> GetFileForAlbumAsync(AlbumMetadataIdentifier identifier)
+        public Stream GetFileForAlbum(AlbumMetadataIdentifier identifier)
         {
             var filePath = GetStoragePath(identifier);
-            return await fileStorage.ReadFileAsync(filePath);
+            return fileStorage.ReadFile(filePath);
         }
 
         public string GetStoragePath(AlbumMetadataIdentifier identifier, bool includeBasePath = false, bool isTmpFile = false)

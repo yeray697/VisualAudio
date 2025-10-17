@@ -67,9 +67,9 @@ namespace VisualAudio.Api.Controllers
         }
         public class FingerprintJobRequest
         {
-            public string AlbumId { get; set; }
-            public string SongId { get; set; }
-            public IFormFile FileContent { get; set; }
+            public required string AlbumId { get; set; }
+            public required string SongId { get; set; }
+            public required IFormFile FileContent { get; set; }
         }
     }
 }

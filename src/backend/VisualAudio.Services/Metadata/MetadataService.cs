@@ -4,7 +4,7 @@ using VisualAudio.Services.Video;
 
 namespace VisualAudio.Services.Metadata
 {
-    public class MetadataService(IDiscogsService discogsService, ILyricsService lyricsService, IVideoDownloaderService videoDownloader) : IMetadataService
+    public class MetadataService(IDiscogsService discogsService, ILyricsService lyricsService) : IMetadataService
     {
         public async Task<AlbumMetadataDto?> GetMetadataForAlbumAsync(string artist, string album)
         {

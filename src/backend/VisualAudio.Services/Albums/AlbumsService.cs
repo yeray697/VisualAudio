@@ -42,16 +42,30 @@ namespace VisualAudio.Services.Albums
             // existing.AlbumImageFilename = album.AlbumImageFilename;
             existing.Songs = album.Songs.Select(s =>
             {
-                var newSong = existing.Songs.FirstOrDefault(es => es.Id == s.Id) ?? new Song();
-                newSong.CreatedAt = s.CreatedAt;
-                newSong.Duration = s.Duration;
-                newSong.Id = s.Id;
-                newSong.Name = s.Name;
-                newSong.Position = s.Position;
-                newSong.UpdatedAt = s.UpdatedAt;
-                //SongImageFilename = s.SongImageFilename
-                //SongFilename = s.SongFilename
-                //SongLyricsFilename = s.SongLyricsFilename;
+                var newSong = existing.Songs.FirstOrDefault(es => es.Id == s.Id);
+
+                if (newSong == null)
+                {
+                    newSong = new Song() {
+                       CreatedAt = s.CreatedAt,
+                       Duration = s.Duration,
+                       Id = s.Id,
+                       Name = s.Name,
+                       Artist = s.Artist,
+                       Position = s.Position,
+                       UpdatedAt = s.UpdatedAt,
+                    };
+                }
+                else
+                {
+                    newSong.CreatedAt = s.CreatedAt;
+                    newSong.Duration = s.Duration;
+                    newSong.Id = s.Id;
+                    newSong.Name = s.Name;
+                    newSong.Artist = s.Artist;
+                    newSong.Position = s.Position;
+                    newSong.UpdatedAt = s.UpdatedAt;
+                }
 
                 return newSong;
             }).ToList();
@@ -86,6 +100,7 @@ namespace VisualAudio.Services.Albums
                     Duration = s.Duration,
                     Id = s.Id,
                     Name = s.Name,
+                    Artist = s.Artist,
                     Position = s.Position,
                     UpdatedAt = s.UpdatedAt,
                     SongImageFilename = s.SongImageFilename,
@@ -112,6 +127,7 @@ namespace VisualAudio.Services.Albums
                     Duration = s.Duration,
                     Id = s.Id,
                     Name = s.Name,
+                    Artist = s.Artist,
                     SongImageFilename = s.SongImageFilename,
                     SongFingerprint = MapFingerprintToDto(s.SongFingerprint),
                     SongLyricsFilename = s.SongLyricsFilename,

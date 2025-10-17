@@ -114,7 +114,7 @@ void ConfigureWebSocket()
         return Results.Ok();
     });
 
-    _ = app.MapGet("/api/nowPlaying", async (HttpContext context) =>
+    _ = app.MapGet("/api/nowPlaying", (HttpContext context) =>
     {
         var nowPlaying = webSocketManager.GetNowPlaying();
         return Results.Ok(nowPlaying);
@@ -173,7 +173,7 @@ public class WebSocketManager
         var messageAsText = await new StreamReader(stream).ReadToEndAsync();
         try
         {
-            var message = JsonSerializer.Deserialize<Message>(messageAsText, options);
+            var message = JsonSerializer.Deserialize<Message>(messageAsText, options)!;
             UpdateLastMessage(message);
         }
         catch
@@ -195,7 +195,7 @@ public class WebSocketManager
 
     public Message? GetNowPlaying()
     {
-        _lastMessage.TryGetValue(MessageType.NOW_PLAYING, out Message value);
+        _lastMessage.TryGetValue(MessageType.NOW_PLAYING, out Message? value);
         return value;
     }
 

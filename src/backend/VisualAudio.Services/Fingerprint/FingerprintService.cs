@@ -45,6 +45,7 @@ namespace VisualAudio.Services.Fingerprint
         public async Task<string> ConvertToWavAsync(Stream content)
         {
             content.Position = 0;
+
             var tmpPath = await StoreTmpFileAsync(content);
             var wavPath = await ConvertToWavAsync(0, tmpPath);
 
@@ -83,7 +84,7 @@ namespace VisualAudio.Services.Fingerprint
 
             _logger.LogInformation("Running FFmpeg command: {Command} {Args}", ffmpeg.FileName, ffmpeg.Arguments);
 
-            var process = System.Diagnostics.Process.Start(ffmpeg);
+            var process = System.Diagnostics.Process.Start(ffmpeg)!;
             string stdOut = await process.StandardOutput.ReadToEndAsync();
             string stdErr = await process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
@@ -157,7 +158,7 @@ namespace VisualAudio.Services.Fingerprint
                     return null;
                 }
 
-                var bestMatch = queryResult.BestMatch!;
+                AVResultEntry bestMatch = queryResult.BestMatch!;
                 _logger.LogInformation("Best match found: {TrackId}", bestMatch.TrackId);
 
                 if (bestMatch != null && modelService is EmyModelService emyModelService)
@@ -165,7 +166,7 @@ namespace VisualAudio.Services.Fingerprint
                     emyModelService.RegisterMatches(new[] { bestMatch.ConvertToAvQueryMatch() }, false);
                 }
 
-                var track = modelService.ReadTrackById(bestMatch.TrackId);
+                var track = modelService.ReadTrackById(bestMatch!.TrackId);
 
                 return new DetectionResult()
                 {
@@ -185,11 +186,8 @@ namespace VisualAudio.Services.Fingerprint
             modelService.DeleteTrack(fingerprintId);
         }
 
-        private async Task<string?> StoreTmpFileAsync(Stream file)
+        private async Task<string> StoreTmpFileAsync(Stream file)
         {
-            if (file == null || file.Length == 0)
-                return null;
-
             var tempPath = Path.Combine(_fileStorageService.GetPath($"VisualAudio_{Path.GetRandomFileName()}", true));
 
             await using (Stream stream = File.Create(tempPath))
@@ -204,7 +202,7 @@ namespace VisualAudio.Services.Fingerprint
 
     public class DetectionResult
     {
-        public AVResultEntry Match { get; set; }
-        public TrackInfo Track { get; set; }
+        public required AVResultEntry Match { get; set; }
+        public required TrackInfo Track { get; set; }
     }
 }

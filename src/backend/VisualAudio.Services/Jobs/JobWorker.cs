@@ -72,7 +72,7 @@ namespace VisualAudio.Services.Jobs
                 if (method == null)
                     throw new InvalidOperationException("Handler no implementa HandleAsync");
 
-                var payload = JsonSerializer.Deserialize(job.PayloadJson, payloadType);
+                var payload = JsonSerializer.Deserialize(job.PayloadJson, payloadType)!;
 
                 await (Task)method.Invoke(handler, new object[] { job.Id, payload, cancellationToken })!;
 
@@ -86,6 +86,4 @@ namespace VisualAudio.Services.Jobs
             }
         }
     }
-
-
 }

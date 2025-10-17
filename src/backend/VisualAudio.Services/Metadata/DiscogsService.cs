@@ -113,45 +113,45 @@ public class DiscogsSearchResponse
 public class DiscogsSearchResult
 {
     public int Id { get; set; }
-    public string Title { get; set; }
-    public List<string> Format { get; set; }
+    public required string Title { get; set; }
+    public required List<string> Format { get; set; }
 }
 
 public class DiscogsRelease
 {
-    public string Title { get; set; }
-    public string Country { get; set; }
-    public string Released { get; set; }
-    public List<DiscogsImage> Images { get; set; }
-    public List<DiscogsTrack> Tracklist { get; set; }
-    public List<DicogsVideos> Videos { get; set; }
+    public required string Title { get; set; }
+    public required string Country { get; set; }
+    public required string Released { get; set; }
+    public required List<DiscogsImage> Images { get; set; }
+    public required List<DiscogsTrack> Tracklist { get; set; }
+    public required List<DicogsVideos> Videos { get; set; }
 }
 
 public class DiscogsImage
 {
-    public string Uri { get; set; }
-    public string Resource_Url { get; set; }
-    public string Type { get; set; }
+    public required string Uri { get; set; }
+    public required string Resource_Url { get; set; }
+    public required string Type { get; set; }
 }
 
 public class DicogsVideos
 {
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public string Uri { get; set; }
+    public required string Title { get; set; }
+    public required string Description { get; set; }
+    public required string Uri { get; set; }
     public int Duration { get; set; }
 }
 
 public class DiscogsTrack
 {
-    public string Title { get; set; }
-    public string Duration { get; set; }
-    public string Position { get; set; }
+    public required string Title { get; set; }
+    public required string Duration { get; set; }
+    public required string Position { get; set; }
     public DiscogsArtists[] Extraartists { get; set; } = [];
 }
 
 public class DiscogsArtists
 {
-    public string Name { get; set; }
-    public string Role { get; set; }
+    public required string Name { get; set; }
+    public required string Role { get; set; }
 }

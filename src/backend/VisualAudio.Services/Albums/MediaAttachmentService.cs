@@ -92,7 +92,7 @@ namespace VisualAudio.Services.Albums
             filename += $"{fileExtension}";
             var identifier = GetAlbumMetadataIdentifier(filename, albumId, songId);
 
-            var album = await albumRepository.GetAlbumAsync(albumId);
+            var album = await albumRepository.GetAlbumAsync(albumId) ?? throw new KeyNotFoundException($"Album id {albumId} not found");
             var filePath = await albumMetadataRepository.UpsertFileForAlbumAsync(identifier, content);
 
             if (isAlbumFile)
@@ -112,7 +112,7 @@ namespace VisualAudio.Services.Albums
             var filename =  "song-lyrics.txt";
             var identifier = GetAlbumMetadataIdentifier(filename, albumId, songId);
 
-            var album = await albumRepository.GetAlbumAsync(albumId);
+            var album = await albumRepository.GetAlbumAsync(albumId) ?? throw new KeyNotFoundException($"Album id {albumId} not found");
             var song = album.Songs.First(s => s.Id == songId);
             var filePath = await albumMetadataRepository.UpsertFileForAlbumAsync(identifier, content);
 
@@ -123,7 +123,7 @@ namespace VisualAudio.Services.Albums
         public async Task DeleteImage(string albumId, string? songId)
         {
             var isAlbumFile = string.IsNullOrWhiteSpace(songId);
-            var album = await albumRepository.GetAlbumAsync(albumId);
+            var album = await albumRepository.GetAlbumAsync(albumId) ?? throw new KeyNotFoundException($"Album id {albumId} not found");
             string? filename = null;
             if (isAlbumFile)
             {

@@ -1,8 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-
-using VisualAudio.Data.Albums;
+﻿using VisualAudio.Data.Albums;
 using VisualAudio.Data.Albums.Models;
-using VisualAudio.Services.Albums;
 using VisualAudio.Services.Video;
 using VisualAudio.Services.Video.Models;
 
@@ -10,10 +7,10 @@ namespace VisualAudio.Jobs.Handlers
 {
     public class VideoJobPayload
     {
-        public string VideoUrl { get; set; }
+        public required string VideoUrl { get; set; }
         public List<VideoSegment> Segments { get; set; } = [];
-        public string AlbumId { get; set; }
-        public string SongId { get; set; }
+        public required string AlbumId { get; set; }
+        public required string SongId { get; set; }
         public string MaxQuality { get; set; } = "2160";
 
         public class VideoSegment
@@ -54,9 +51,9 @@ namespace VisualAudio.Jobs.Handlers
                     JobId = jobId,
                     MaxQuality = payload.MaxQuality,
                     Segments = [.. payload.Segments.Select(s => new Video.VideoSegment() { End = s.End, Start = s.Start })],
+                    Filename = resultFilename,
                     VideoUrl = payload.VideoUrl
                 };
-                song.SongVideo.Filename = resultFilename;
 
                 await albumRepository.UpdateAlbumAsync(payload.AlbumId, album);
             }

@@ -1,17 +1,13 @@
 ﻿using VisualAudio.Data.Albums;
-using VisualAudio.Data.Albums.Models;
-using VisualAudio.Services.Albums;
 using VisualAudio.Services.Fingerprint;
-using VisualAudio.Services.Video;
-using VisualAudio.Services.Video.Models;
 
 namespace VisualAudio.Jobs.Handlers
 {
     public class FingerprintJobPayload
     {
-        public string AlbumId { get; set; }
-        public string SongId { get; set; }
-        public string Filepath { get; set; }
+        public required string AlbumId { get; set; }
+        public required string SongId { get; set; }
+        public required string Filepath { get; set; }
     }
 
     public class FingerprintJobHandler(IFingerprintService fingerprintService, IAlbumRepository albumRepository) : IJobHandler<FingerprintJobPayload>
@@ -35,11 +31,11 @@ namespace VisualAudio.Jobs.Handlers
 
                 song.SongFingerprint ??= new()
                 {
-                    JobId = jobId
+                    JobId = jobId,
+                    FingerprintId = fingerPrintId,
+                    Filename = payload.Filepath,
                 };
 
-                song.SongFingerprint.FingerprintId = fingerPrintId;
-                song.SongFingerprint.Filename = payload.Filepath;
 
                 await albumRepository.UpdateAlbumAsync(payload.AlbumId, album);
             }

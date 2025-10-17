@@ -21,10 +21,10 @@ namespace VisualAudio.Services.Metadata.Lyrics
                 { "subtitle_format", "lrc" }
             });
 
-            if (data == null || !data.MacroCalls.ContainsKey("matcher.track.get"))
+            if (data?.MacroCalls == null || !data.MacroCalls.TryGetValue("matcher.track.get", out MacroCall? value))
                 return null;
 
-            var track = data.MacroCalls["matcher.track.get"]?.Message?.Body?.Track;
+            var track = value?.Message?.Body?.Track;
             var lyrics = data.MacroCalls["track.lyrics.get"]?.Message?.Body?.Lyrics?.LyricsBody;
             var subtitle = data.MacroCalls["track.subtitles.get"]?.Message?.Body?.SubtitleList?.FirstOrDefault()?.Subtitle;
 

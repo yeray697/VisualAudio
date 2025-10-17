@@ -8,9 +8,9 @@ namespace VisualAudio.Services.Jobs.Handlers
 {
     public class FingerprintJobPayload
     {
-        public string AlbumId { get; set; }
-        public string SongId { get; set; }
-        public string FileTmpPath { get; set; }
+        public required string AlbumId { get; set; }
+        public required string SongId { get; set; }
+        public required string FileTmpPath { get; set; }
     }
 
     public class FingerprintJobHandler(IFingerprintService fingerprintService, IAlbumRepository albumRepository, IAlbumMetadataRepository albumMetadataRepository) : IJobHandler<FingerprintJobPayload>
@@ -40,11 +40,10 @@ namespace VisualAudio.Services.Jobs.Handlers
                 File.Move(convertedTmpPath, filePath);
                 song.SongFingerprint ??= new()
                 {
-                    JobId = jobId
+                    JobId = jobId,
+                    FingerprintId = fingerPrintId,
+                    Filename = albumMetadataRepository.ParseStoragePath(filePath)
                 };
-
-                song.SongFingerprint.FingerprintId = fingerPrintId;
-                song.SongFingerprint.Filename = albumMetadataRepository.ParseStoragePath(filePath);
 
 
                 await albumRepository.UpdateAlbumAsync(payload.AlbumId, album);

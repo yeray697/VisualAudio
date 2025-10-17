@@ -77,21 +77,24 @@ namespace VisualAudio.Api.Controllers
         [HttpPut("{albumId}/file/{fileType}")]
         public async Task<IActionResult> Update([FromForm] IFormFile? file, string albumId, MetadataFileType fileType, [FromQuery] string? songId = null, [FromQuery] string? url = null)
         {
-            if (file == null && string.IsNullOrWhiteSpace(url))
-            {
-                return BadRequest("Debe proporcionar un archivo o una URL.");
-            }
             Stream stream;
             string extension;
-
-            if (file != null)
+            if (string.IsNullOrWhiteSpace(url) && file == null)
+            {
+                return BadRequest("You must provide a file or an URL.");
+            }
+            if (!string.IsNullOrWhiteSpace(url) && file != null)
+            {
+                return BadRequest("You must provide only a file or an URL.");
+            }
+            else if (file != null)
             {
                 stream = file.OpenReadStream();
                 extension = Path.GetExtension(file.FileName);
             }
             else
             {
-                stream = await DownloadFileAsync(url);
+                stream = await DownloadFileAsync(url!);
 
                 extension = Path.GetExtension(new Uri(url!).AbsolutePath);
                 if (string.IsNullOrWhiteSpace(extension))
@@ -109,6 +112,8 @@ namespace VisualAudio.Api.Controllers
                 //    await mediaAttachmentService.DeleteSongAsync(albumId, songId!);
                 //    break;
                 case MetadataFileType.SongLyrics:
+                    if (songId == null)
+                        throw new ArgumentNullException(nameof(songId), "You must provide a songId when uploading a Song Lyrics");
                     await mediaAttachmentService.UploadLyrics(albumId, songId, stream);
                     break;
                 //case MetadataFileType.SongVideo:
@@ -137,12 +142,12 @@ namespace VisualAudio.Api.Controllers
             return Ok(release);
         }
 
-        private async Task<Stream?> DownloadFileAsync(string url)
+        private static async Task<Stream> DownloadFileAsync(string url)
         {
             using var httpClient = new HttpClient();
             var response = await httpClient.GetAsync(url!);
             if (!response.IsSuccessStatusCode)
-                return null;
+                throw new Exception($"Call to {url} returned status code {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
 
             return await response.Content.ReadAsStreamAsync();
         }
